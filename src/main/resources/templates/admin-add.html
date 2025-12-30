@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Admin - Add Contestant</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; background-color: #f4f4f4; }
+        form { background: white; padding: 20px; border-radius: 8px; max-width: 400px; }
+        div { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; }
+        input, textarea { width: 100%; padding: 8px; margin-top: 5px; }
+        button { background: #28a745; color: white; border: none; padding: 10px 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+<h2>Add New Rodeo Contestant</h2>
+<form th:action="@{/admin/add}" th:object="${contestant}" method="post">
+    <div>
+        <label>Name:</label>
+        <input type="text" th:field="*{name}" placeholder="e.g. Stetson Wright" required />
+    </div>
+    <div>
+        <label>Salary:</label>
+        <input type="number" step="0.01" th:field="*{salary}" required />
+    </div>
+    <div>
+        <label>Event Type:</label>
+        <input type="text" th:field="*{eventType}" placeholder="e.g. Bull Riding" />
+    </div>
+    <div>
+        <label>Bio:</label>
+        <textarea th:field="*{bio}"></textarea>
+    </div>
+    <button type="submit">Save Contestant</button>
+</form>
+</body>
+</html>
