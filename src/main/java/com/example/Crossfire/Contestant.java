@@ -1,12 +1,9 @@
 package com.example.Crossfire;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Column;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Data
@@ -25,5 +22,8 @@ public class Contestant {
     private String eventType; // Bull Riding, Steer Wrestling, etc.
 
     private boolean isInjured = false;
+
+    @ManyToMany(mappedBy = "eligibleContestants")
+    private List<ContestSetup> eligibleSetups;
 
 }

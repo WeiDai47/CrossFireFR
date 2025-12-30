@@ -1,4 +1,4 @@
-package com.example.Crossfire.contoller;
+package com.example.Crossfire.controller;
 
 import com.example.Crossfire.repository.LiveScoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;

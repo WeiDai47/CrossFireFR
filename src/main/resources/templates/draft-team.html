@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Draft Room - Crossfire Rodeo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --accent-red: #b11111;
+      --accent-green: #0bea00;
+      --text-light: #f8fafc;
+      --border: #334155;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      margin: 0;
+      padding: 100px 20px 40px;
+    }
+
+    /* Floating Budget Bar */
+    .budget-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(177, 17, 17, 0.95);
+      backdrop-filter: blur(8px);
+      color: var(--accent-green);
+      padding: 15px 40px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid var(--accent-green);
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+
+    header {
+      max-width: 1200px;
+      margin: 0 auto 30px;
+      text-align: center;
+    }
+
+    h1 { font-family: 'Oswald', sans-serif; font-size: 3rem; margin: 0; text-transform: uppercase; color: white; }
+    p.location { color: #94a3b8; font-size: 1.1rem; margin-top: 5px; }
+
+    /* Layout Grid */
+    .draft-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 25px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .category-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .category-box h3 {
+      font-family: 'Oswald', sans-serif;
+      color: var(--accent-green);
+      margin-top: 0;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    /* Athlete Rows */
+    .athlete-row {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.2s;
+      cursor: pointer; /* Makes entire row feel clickable */
+    }
+
+    .athlete-row:hover { background: rgba(255,255,255,0.05); }
+
+    .athlete-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-right: 15px;
+      accent-color: var(--accent-green);
+      cursor: pointer;
+    }
+
+    .salary-text {
+      margin-left: auto;
+      font-family: 'Oswald', sans-serif;
+      color: var(--accent-green);
+    }
+
+    /* Submit Button */
+    .submit-container {
+      max-width: 1200px;
+      margin: 40px auto;
+      text-align: center;
+    }
+
+    .btn-submit {
+      background: var(--accent-green);
+      color: #000;
+      border: none;
+      padding: 15px 50px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Oswald', sans-serif;
+      transition: transform 0.2s, background 0.2s;
+      text-transform: uppercase;
+    }
+
+    .btn-submit:hover {
+      transform: scale(1.05);
+      background: #09c100;
+    }
+
+    .over-budget {
+      color: white !important;
+      text-decoration: underline wavy #ff4444;
+    }
+
+    .alert-error {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px auto;
+      max-width: 1200px;
+      border: 1px solid #f5c6cb;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="budget-bar">
+  <div>CROSSFIRE RODEO</div>
+  <div>REMAINING: $<span id="remaining-budget" th:text="${#numbers.formatDecimal(contest.salaryCap, 1, 'COMMA', 2, 'POINT')}">50,000.00</span></div>
+</div>
+
+<header>
+  <h1 th:text="${contest.contestName}">Contest Name</h1>
+  <p class="location">📍 <span th:text="${contest.rodeoEvent.location}">Location</span> | 📅 <span th:text="${contest.rodeoEvent.eventDate}">Date</span></p>
+</header>
+
+<div th:if="${errorMessage}" class="alert-error">
+  ⚠️ <span th:text="${errorMessage}">Error Message Goes Here</span>
+</div>
+
+<form th:action="@{'/draft/' + ${contest.id} + '/submit'}" method="post">
+
+  <div style="text-align: center; margin-bottom: 30px;">
+    <label style="font-family: 'Oswald', sans-serif; margin-right: 10px;">DRAFT USERNAME:</label>
+    <input type="text" name="username" placeholder="e.g. CowboyFan88" required
+           style="padding: 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--card-bg); color: white; width: 250px; font-size: 1rem;"/>
+  </div>
+
+  <div class="draft-grid">
+    <div th:each="setup : ${setups}" class="category-box">
+      <h3 th:text="${setup.categoryName} + ' (Pick ' + ${setup.maxPickPerUser} + ')'"></h3>
+
+      <div th:each="athlete : ${setup.eligibleContestants}" class="athlete-row">
+        <input type="checkbox"
+               name="contestantPicks"
+               th:value="${setup.id + '-' + athlete.id}"
+               th:data-salary="${athlete.salary}"
+               onchange="updateBudget(this)" />
+        <span th:text="${athlete.name}">Athlete Name</span>
+        <span class="salary-text" th:text="'$' + ${#numbers.formatDecimal(athlete.salary, 0, 'COMMA', 0, 'POINT')}">$0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="submit-container">
+    <button type="submit" class="btn-submit">Submit My Team</button>
+  </div>
+</form>
+
+<script th:inline="javascript">
+  /* Fixed: Pulling salary cap from the contest object */
+  const cap = /*[[${contest.salaryCap}]]*/ 50000;
+  let currentTotal = 0;
+
+  function updateBudget(checkbox) {
+    const salary = parseFloat(checkbox.getAttribute('data-salary'));
+
+    if (checkbox.checked) {
+      currentTotal += salary;
+    } else {
+      currentTotal -= salary;
+    }
+
+    const remaining = cap - currentTotal;
+    const display = document.getElementById('remaining-budget');
+
+    // Update text with currency formatting
+    display.innerText = remaining.toLocaleString(undefined, {minimumFractionDigits: 2});
+
+    // Visual feedback if over budget
+    if (remaining < 0) {
+      display.classList.add('over-budget');
+    } else {
+      display.classList.remove('over-budget');
+    }
+  }
+</script>
+</body>
+</html>

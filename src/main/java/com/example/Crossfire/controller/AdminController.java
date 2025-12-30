@@ -1,4 +1,4 @@
-package com.example.Crossfire.contoller;
+package com.example.Crossfire.controller;
 
 import com.example.Crossfire.Contestant;
 import com.example.Crossfire.repository.ContestantRepository;
@@ -21,6 +21,8 @@ public class AdminController {
         model.addAttribute("contestant", new Contestant());
         return "admin-add"; // This looks for admin-add.html
     }
+
+
 
     // Process the form data
     @PostMapping("/admin/add")
