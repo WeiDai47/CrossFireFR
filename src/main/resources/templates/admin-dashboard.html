@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Admin Dashboard | Crossfire</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #0f172a; --card-bg: #1e293b; --accent-red: #b11111; --accent-green: #0bea00; --text-light: #f8fafc; --border: #334155; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-light); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .dashboard-container { width: 100%; max-width: 900px; padding: 20px; text-align: center; }
+        h1 { font-family: 'Oswald', sans-serif; font-size: 3rem; color: var(--accent-green); text-transform: uppercase; margin-bottom: 40px; border-bottom: 2px solid var(--accent-red); display: inline-block; padding-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+        .admin-tile { background: var(--card-bg); border: 1px solid var(--border); padding: 40px; border-radius: 12px; text-decoration: none; color: white; transition: 0.3s; display: flex; flex-direction: column; align-items: center; }
+        .admin-tile:hover { border-color: var(--accent-green); transform: translateY(-5px); background: #26334d; }
+        .tile-icon { font-size: 3rem; margin-bottom: 15px; }
+        .tile-title { font-family: 'Oswald'; font-size: 1.5rem; text-transform: uppercase; margin-bottom: 10px; }
+        .tile-desc { color: #94a3b8; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+<div class="dashboard-container">
+    <h1>Admin Control Center</h1>
+
+    <div class="grid">
+        <a href="/admin/scoring" class="admin-tile">
+            <div class="tile-icon">⏱️</div>
+            <div class="tile-title">Live Scoring</div>
+            <div class="tile-desc">Update athlete scores and finalize results for active rodeos.</div>
+        </a>
+
+        <a href="/admin/add" class="admin-tile">
+            <div class="tile-icon">🤠</div>
+            <div class="tile-title">Manage Roster</div>
+            <div class="tile-desc">Add new athletes to the global pool or update salaries/bios.</div>
+        </a>
+
+        <a href="/" class="admin-tile" style="opacity: 0.7;">
+            <div class="tile-icon">🏠</div>
+            <div class="tile-title">Public Lobby</div>
+            <div class="tile-desc">View the site as a regular user would see it.</div>
+        </a>
+    </div>
+</div>
+</body>
+</html>

@@ -1,12 +1,16 @@
 package com.example.Crossfire.repository;
 
 import com.example.Crossfire.LiveScore;
+import com.example.Crossfire.RodeoEvent;
+import com.example.Crossfire.Contestant;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional; // Don't forget this import
 
-@Repository
 public interface LiveScoreRepository extends JpaRepository<LiveScore, Long> {
-    // This helper method lets you find scores for a specific rodeo event
-    List<LiveScore> findByRodeoEventId(Long eventId);
+
+    List<LiveScore> findByRodeoEvent(RodeoEvent rodeoEvent);
+
+    // This is the method the AdminController is looking for:
+    Optional<LiveScore> findByRodeoEventAndContestant(RodeoEvent event, Contestant contestant);
 }

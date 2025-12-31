@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Live Scoring | Crossfire</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #0f172a; --card-bg: #1e293b; --accent-red: #b11111; --accent-green: #0bea00; --text-light: #f8fafc; --border: #334155; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-light); padding: 20px; }
+        .header { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
+        #search { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 6px; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden; }
+        th { background: #0f172a; text-align: left; padding: 15px; font-family: 'Oswald'; text-transform: uppercase; color: #94a3b8; }
+        td { padding: 15px; border-bottom: 1px solid var(--border); }
+        .score-input { width: 80px; padding: 8px; background: #0f172a; border: 1px solid var(--border); color: var(--accent-green); font-weight: bold; border-radius: 4px; }
+        .btn-save { background: var(--accent-green); border: none; padding: 8px 15px; border-radius: 4px; font-family: 'Oswald'; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <a href="/admin/scoring" style="color: var(--accent-green); text-decoration: none;">← Back to Events</a>
+    <h1 th:text="'Live Scoring: ' + ${event.eventName}" style="font-family: 'Oswald'; margin: 10px 0;">Event</h1>
+    <input type="text" id="search" placeholder="Search athlete by name..." onkeyup="filterTable()">
+</div>
+
+<table id="athleteTable">
+    <thead>
+    <tr>
+        <th>Athlete</th>
+        <th>Category</th>
+        <th>Score</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="athlete : ${athletes}">
+        <td th:text="${athlete.name}" style="font-weight: 600;">Athlete Name</td>
+        <td th:text="${athlete.eventType}" style="color: #94a3b8;">Category</td>
+        <form th:action="@{/admin/scoring/update}" method="post">
+            <input type="hidden" name="eventId" th:value="${event.id}">
+            <input type="hidden" name="contestantId" th:value="${athlete.id}">
+            <td><input type="number" step="0.01" name="score" class="score-input" required></td>
+            <td><button type="submit" class="btn-save">SAVE</button></td>
+        </form>
+    </tr>
+    </tbody>
+</table>
+
+<script>
+    function filterTable() {
+        let input = document.getElementById("search").value.toUpperCase();
+        let rows = document.getElementById("athleteTable").getElementsByTagName("tr");
+        for (let i = 1; i < rows.length; i++) {
+            let name = rows[i].getElementsByTagName("td")[0].textContent.toUpperCase();
+            rows[i].style.display = name.includes(input) ? "" : "none";
+        }
+    }
+</script>
+</body>
+</html>

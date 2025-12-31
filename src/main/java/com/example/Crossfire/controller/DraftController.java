@@ -86,4 +86,16 @@ public class DraftController {
         }
         return "my-teams";
     }
+    @GetMapping("/contest/{contestId}/leaderboard")
+    public String showLeaderboard(@PathVariable Long contestId, Model model) {
+        FantasyContest contest = contestRepo.findById(contestId).orElseThrow();
+
+        // Get all entries and sort them by their calculated total score (descending)
+        List<UserEntry> entries = contest.getUserEntries();
+        entries.sort((a, b) -> Double.compare(b.getTotalScore(), a.getTotalScore()));
+
+        model.addAttribute("contest", contest);
+        model.addAttribute("entries", entries);
+        return "leaderboard";
+    }
 }

@@ -105,42 +105,9 @@
 </head>
 <body>
 
-<div class="admin-card">
-    <h2>Add New Contestant</h2>
+<a href="/admin/scoring" style="color: var(--accent-green); text-decoration: none; font-size: 0.8rem;">← Go to Scoring Dashboard</a>
 
-    <form th:action="@{/admin/add}" th:object="${contestant}" method="post">
-
-        <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" th:field="*{name}" placeholder="e.g. Stetson Wright" required />
-        </div>
-
-        <div class="form-group">
-            <label>Event Type</label>
-            <select th:field="*{eventType}">
-                <option value="Barrels">Barrels</option>
-                <option value="Bareback">Bareback</option>
-                <option value="Saddle Bronc">Saddle Bronc</option>
-                <option value="Steer Wrestling">Steer Wrestling</option>
-                <option value="Calf Roping">Calf Roping</option>
-                <option value="Team Roping">Team Roping</option>
-                <option value="Bull Riding">Bull Riding</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>Salary ($)</label>
-            <input type="number" th:field="*{salary}" placeholder="e.g. 7500" required />
-        </div>
-
-        <div class="form-group">
-            <label>Biography</label>
-            <textarea th:field="*{bio}" placeholder="Competition history..."></textarea>
-        </div>
-
-        <button type="submit" class="btn-submit">Save Contestant</button>
-    </form>
-</div>
+<form th:action="@{/admin/add}" th:object="${contestant}" method="post">
 
 </body>
 </html>

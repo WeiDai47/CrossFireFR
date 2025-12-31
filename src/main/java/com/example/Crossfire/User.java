@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Entity
-@Table(name = "users") // 'user' is a reserved keyword in some SQL dialects
+@Table(name = "users")
 @Data
 public class User {
     @Id
@@ -13,12 +13,14 @@ public class User {
     private Long id;
 
     @Column(unique = true, nullable = false)
+    private String username; // Add this field
+
+    @Column(unique = true, nullable = false)
     private String email;
 
-    private String password; // Will hold encoded hash later
+    private String password;
     private String displayName;
 
-    // One user can have many entries across different rodeo events
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserEntry> entries;
 }

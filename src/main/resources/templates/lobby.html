@@ -60,6 +60,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 25px;
+            margin-bottom: 60px; /* Space for the admin footer */
         }
 
         .contest-card {
@@ -102,6 +103,33 @@
         }
 
         .contest-meta { font-size: 0.85rem; color: #94a3b8; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+
+        /* Admin Section Styling */
+        .admin-footer {
+            margin-top: 80px;
+            padding: 30px;
+            background: rgba(177, 17, 17, 0.05); /* Very subtle red tint */
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .btn-admin {
+            display: inline-block;
+            background: var(--accent-red);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            font-family: 'Oswald', sans-serif;
+            font-weight: bold;
+            border-radius: 6px;
+            text-transform: uppercase;
+            transition: background 0.3s;
+        }
+
+        .btn-admin:hover {
+            background: #8e0e0e;
+        }
     </style>
 </head>
 <body>
@@ -111,7 +139,6 @@
         <div class="logo">Crossfire <span style="color:white">Rodeo</span></div>
         <div class="nav-links">
             <a href="/draft/my-teams" style="color: var(--accent-green)">My Teams</a>
-            <a href="/admin/add">Add Contestant</a>
         </div>
     </nav>
 
@@ -123,7 +150,7 @@
         </form>
     </div>
 
-    <h1 style="font-family: 'Oswald', sans-serif; text-transform: uppercase;">Available Contests</h1>
+    <h1 style="font-family: 'Oswald', sans-serif; text-transform: uppercase; margin-bottom: 30px;">Available Contests</h1>
 
     <div class="contest-grid">
         <div th:each="contest : ${contests}" class="contest-card">
@@ -142,6 +169,12 @@
 
             <a th:href="@{'/draft/' + ${contest.id}}" class="btn-draft">Enter Draft Room</a>
         </div>
+    </div>
+
+    <div class="admin-footer">
+        <h3 style="font-family: 'Oswald'; text-transform: uppercase; color: var(--accent-red); margin-top: 0;">Staff Administration</h3>
+        <p style="color: #94a3b8; margin-bottom: 20px;">Access live scoring, athlete roster management, and event settings.</p>
+        <a href="/admin/dashboard" class="btn-admin">Open Admin Dashboard</a>
     </div>
 </div>
 

@@ -5,6 +5,9 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Entity
+@Table(name = "live_scores", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"rodeo_event_id", "contestant_id"})
+})
 @Data
 public class LiveScore {
     @Id
@@ -12,12 +15,14 @@ public class LiveScore {
     private Long id;
 
     @ManyToOne
-    private RodeoEvent rodeoEvent; // Which rodeo?
+    @JoinColumn(name = "rodeo_event_id") // Added explicit join column names
+    private RodeoEvent rodeoEvent;
 
     @ManyToOne
-    private Contestant contestant; // Which athlete?
+    @JoinColumn(name = "contestant_id")
+    private Contestant contestant;
 
-    private double score;           // e.g., 88.5 points for a ride
-    private BigDecimal winnings;    // The actual $ amount they won in the round
-    private boolean isOfficial;     // Set to true once the judges finalize the score
+    private double score;
+    private BigDecimal winnings;
+    private boolean isOfficial;
 }

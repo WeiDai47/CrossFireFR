@@ -74,13 +74,32 @@
   </div>
 
   <div th:each="entry : ${entries}" class="team-card">
-    <div class="contest-info">
-      <h2 th:text="${entry.fantasyContest.contestName}" style="margin:0; font-family: 'Oswald';">Contest Name</h2>
-      <span style="color: var(--accent-green);" th:text="${entry.fantasyContest.rodeoEvent.eventName}">Rodeo Event</span>
-      <span style="margin-left: 15px; color: #94a3b8;" th:text="'Salary: $' + ${#numbers.formatDecimal(entry.totalTeamSalary, 0, 'COMMA', 0, 'POINT')}"></span>
+    <div class="contest-info" style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h2 th:text="${entry.fantasyContest.contestName}" style="margin:0; font-family: 'Oswald';">Contest Name</h2>
+        <div style="margin-top: 5px;">
+          <span style="color: var(--accent-green);" th:text="${entry.fantasyContest.rodeoEvent.eventName}">Rodeo Event</span>
+          <span style="margin-left: 15px; color: #94a3b8;" th:text="'Salary: $' + ${#numbers.formatDecimal(entry.totalTeamSalary, 0, 'COMMA', 0, 'POINT')}"></span>
+        </div>
+      </div>
+
+      <div style="text-align: right; display: flex; align-items: center; gap: 15px;">
+        <div style="text-align: center;">
+          <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Rank</div>
+          <div th:text="'#' + ${entry.rank}"
+               th:style="${entry.rank == 1} ? 'color: #ffd700; font-size: 1.5rem; font-weight: bold;' : 'color: var(--text-light); font-size: 1.5rem;'">
+            #1
+          </div>
+        </div>
+
+        <a th:href="@{/contest/{id}/leaderboard(id=${entry.fantasyContest.id})}"
+           style="background: var(--accent-red); color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-family: 'Oswald'; font-size: 0.9rem; letter-spacing: 1px; display: inline-block;">
+          LIVE STANDINGS
+        </a>
+      </div>
     </div>
 
-    <div class="athlete-list">
+    <div class="athlete-list" style="margin-top: 20px;">
       <div th:each="selection : ${entry.selections}" class="athlete-item">
         <span th:text="${selection.contestSetup.categoryName}">Category</span>:
         <strong th:text="${selection.contestant.name}">Athlete Name</strong>
