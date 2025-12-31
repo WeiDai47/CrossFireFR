@@ -101,7 +101,7 @@
 
     <div class="athlete-list" style="margin-top: 20px;">
       <div th:each="selection : ${entry.selections}" class="athlete-item">
-        <span th:text="${selection.contestSetup.categoryName}">Category</span>:
+        <span th:text="${selection.contestSetup?.categoryName ?: 'Unknown Category'}">Category</span>
         <strong th:text="${selection.contestant.name}">Athlete Name</strong>
       </div>
     </div>

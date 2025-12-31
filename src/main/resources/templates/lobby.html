@@ -183,7 +183,7 @@
             </div>
 
             <a th:if="${user == null}" href="/login" style="color: var(--accent-green)">LOGIN</a>
-            <a href="/draft/my-teams">MY TEAMS</a>
+            <a th:href="@{/draft/my-teams(username=${user != null ? user.username : ''})}">My Teams</a>
         </div>
     </nav>
 

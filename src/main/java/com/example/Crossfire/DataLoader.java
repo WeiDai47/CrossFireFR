@@ -4,6 +4,7 @@ import com.example.Crossfire.repository.*;
 import com.example.Crossfire.service.RodeoEventService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,8 +20,9 @@ public class DataLoader implements CommandLineRunner {
     private final FantasyContestRepository contestRepo;
     private final RodeoEventService eventService;
     private final UserRepository userRepo;
-    private final LiveScoreRepository liveScoreRepo; // Added for testing
-    private final UserEntryRepository userEntryRepo; // Added for testing
+    private final LiveScoreRepository liveScoreRepo;
+    private final UserEntryRepository userEntryRepo;
+    private final ContestSetupRepo setupRepo;
 
     public DataLoader(ContestantRepository contestantRepo,
                       RodeoEventRepository eventRepo,
@@ -28,7 +30,8 @@ public class DataLoader implements CommandLineRunner {
                       RodeoEventService eventService,
                       UserRepository userRepo,
                       LiveScoreRepository liveScoreRepo,
-                      UserEntryRepository userEntryRepo) {
+                      UserEntryRepository userEntryRepo,
+                      ContestSetupRepo setupRepo) {
         this.contestantRepo = contestantRepo;
         this.eventRepo = eventRepo;
         this.contestRepo = contestRepo;
@@ -36,17 +39,16 @@ public class DataLoader implements CommandLineRunner {
         this.userRepo = userRepo;
         this.liveScoreRepo = liveScoreRepo;
         this.userEntryRepo = userEntryRepo;
+        this.setupRepo = setupRepo;
     }
 
     @Override
     public void run(String... args) throws Exception {
-
-        // --- MASTER SWITCH: Comment out the line below to have a BLANK database ---
+        // We don't need @Transactional here if we fetch data carefully below
         generateTestData();
     }
 
     private void generateTestData() {
-        // 1. MASTER CONTESTANTS
         if (contestantRepo.count() == 0) {
             seedAllContestants();
         }
@@ -54,15 +56,15 @@ public class DataLoader implements CommandLineRunner {
         if (eventRepo.count() == 0) {
             List<Contestant> allPool = contestantRepo.findAll();
 
-            // 2. CREATE THE NFR RODEO
+            // 1. Create NFR
             RodeoEvent nfr = createRodeoWithContests("NFR 2025 - Round 1", "Las Vegas, NV",
                     LocalDate.of(2025, 12, 4), allPool, 50000.0);
 
-            // 3. CREATE OTHER RODEOS
+            // 2. Create Other Rodeo
             createRodeoWithContests("California Finals Rodeo", "Red Bluff, CA",
                     LocalDate.of(2025, 10, 15), getRandomRoster(allPool, 10), 45000.0);
 
-            // 4. TEST LEADERBOARD DATA (Creating Users and Scores for the NFR)
+            // 3. Seed Users and Teams
             seedLeaderboardTestData(nfr, allPool);
 
             System.out.println("Test Data Loaded Successfully.");
@@ -70,52 +72,62 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private void seedLeaderboardTestData(RodeoEvent event, List<Contestant> pool) {
-        // Find the NFR High Stakes contest we just made
         FantasyContest contest = contestRepo.findAll().stream()
                 .filter(c -> c.getContestName().contains("NFR") && c.getContestName().contains("High Stakes"))
                 .findFirst().orElse(null);
 
         if (contest == null) return;
 
-        // Create 2 Test Users
-        // Create 2 Test Users with required Email field
+        // Create Users
         User user1 = new User();
         user1.setUsername("RodeoKing");
-        user1.setPassword("password123"); // Set a password
+        user1.setPassword("password123");
         user1.setDisplayName("Rodeo King");
         user1.setEmail("king@crossfire.com");
         user1.setBalance(new BigDecimal("100.00"));
-         // ADD THIS LINE
         userRepo.save(user1);
 
         User user2 = new User();
         user2.setUsername("BuckleBunny");
         user2.setDisplayName("Buckle Bunny");
-        user2.setEmail("bunny@crossfire.com"); // ADD THIS LINE
+        user2.setEmail("bunny@crossfire.com");
         userRepo.save(user2);
 
-        // Create Live Scores for 3 random athletes in this event
-        Contestant c1 = pool.get(0); // e.g., Stetson Wright
-        Contestant c2 = pool.get(15); // e.g., Keenan Hayes
-        Contestant c3 = pool.get(30); // e.g., Wade/Thorp
+        // Create Scores
+        Contestant c1 = pool.get(0);
+        Contestant c2 = pool.get(15);
+        Contestant c3 = pool.get(30);
 
         saveLiveScore(event, c1, 88.5);
         saveLiveScore(event, c2, 91.0);
-        saveLiveScore(event, c3, 4.2); // Team Roping time
+        saveLiveScore(event, c3, 4.2);
 
-        // Create a User Entry for RodeoKing
+        // Create Entry
         UserEntry entry1 = new UserEntry();
         entry1.setUsername("RodeoKing");
         entry1.setFantasyContest(contest);
         entry1.setUser(user1);
 
-        // Manually adding one selection for testing
-        DraftSelection selection = new DraftSelection();
-        selection.setContestant(c1);
-        selection.setUserEntry(entry1);
-        entry1.getSelections().add(selection);
+        // --- THE FIX IS HERE ---
+        // Instead of asking 'contest.getContestSetups()' (which is null and crashes),
+        // we ask the repository for all setups and find the right one manually.
+        List<ContestSetup> allSetups = setupRepo.findAll();
 
-        userEntryRepo.save(entry1);
+        ContestSetup setup = allSetups.stream()
+                .filter(s -> s.getFantasyContest().getId().equals(contest.getId())) // Match the contest
+                .filter(s -> s.getCategoryName().equalsIgnoreCase(c1.getEventType())) // Match the athlete's event
+                .findFirst()
+                .orElse(null);
+
+        if (setup != null) {
+            DraftSelection selection = new DraftSelection();
+            selection.setContestant(c1);
+            selection.setContestSetup(setup); // This links it correctly so "My Teams" works
+            selection.setUserEntry(entry1);
+            entry1.getSelections().add(selection);
+
+            userEntryRepo.save(entry1);
+        }
     }
 
     private void saveLiveScore(RodeoEvent event, Contestant c, double val) {
@@ -126,8 +138,6 @@ public class DataLoader implements CommandLineRunner {
         ls.setOfficial(true);
         liveScoreRepo.save(ls);
     }
-
-    // --- YOUR EXISTING METHODS BELOW ---
 
     private RodeoEvent createRodeoWithContests(String name, String loc, LocalDate date, List<Contestant> roster, double cap) {
         RodeoEvent event = new RodeoEvent();
@@ -153,7 +163,7 @@ public class DataLoader implements CommandLineRunner {
         casual.setPrizePool(new BigDecimal("250.00"));
         eventService.initializeContestRoster(casual, roster);
 
-        return event; // Return the event so we can link scores to it
+        return event;
     }
 
     private List<Contestant> getRandomRoster(List<Contestant> pool, int sizePerCategory) {
