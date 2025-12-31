@@ -1,5 +1,5 @@
 package com.example.Crossfire.controller;
-
+import org.springframework.transaction.annotation.Transactional;
 import com.example.Crossfire.LiveScore;
 import com.example.Crossfire.FantasyContest;
 import com.example.Crossfire.UserEntry;
@@ -67,28 +67,41 @@ public class LeaderboardController {
     }
 
     @GetMapping("/my-teams")
+    @Transactional(readOnly = true)
     public String showMyTeams(@RequestParam String username, Model model) {
+        // 1. PRINT TO CONSOLE IMMEDIATELY
+        System.out.println("--- DEBUG START ---");
+        System.out.println("Browser requested My Teams for: " + username);
+
         List<UserEntry> entries = userEntryRepository.findByUsername(username);
+
+        // 2. PRINT THE COUNT
+        System.out.println("Database found " + entries.size() + " entries.");
 
         for (UserEntry entry : entries) {
             FantasyContest contest = entry.getFantasyContest();
+            List<LiveScore> eventScores = liveScoreRepo.findByRodeoEvent(contest.getRodeoEvent());
 
-            // FIX 3: Use liveScoreRepo here too
-            List<LiveScore> results = liveScoreRepo.findByRodeoEvent(contest.getRodeoEvent());
-
-            double myScore = entry.calculateTotalScore(results);
+            double myScore = entry.calculateTotalScore(eventScores);
             entry.setLiveScore(myScore);
 
-            long higherTeams = contest.getUserEntries().stream()
-                    .map(otherEntry -> otherEntry.calculateTotalScore(results))
+            List<UserEntry> allContestEntries = contest.getUserEntries();
+            long higherTeams = allContestEntries.stream()
+                    .map(otherEntry -> otherEntry.calculateTotalScore(eventScores))
                     .filter(score -> score > myScore)
                     .count();
 
             entry.setRank((int) higherTeams + 1);
+
+            // 3. PRINT INDIVIDUAL RESULTS
+            System.out.println("Calculated Rank for Team " + entry.getId() + ": #" + entry.getRank());
         }
+
+        System.out.println("--- DEBUG END ---");
 
         model.addAttribute("entries", entries);
         model.addAttribute("searchedUsername", username);
         return "my-teams";
     }
+
 }

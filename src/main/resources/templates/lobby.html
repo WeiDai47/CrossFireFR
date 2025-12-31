@@ -49,7 +49,6 @@
             font-size: 0.9rem;
         }
 
-        /* Styling for the clickable wallet link */
         .balance-link {
             text-decoration: none;
             transition: transform 0.2s;
@@ -183,13 +182,13 @@
             </div>
 
             <a th:if="${user == null}" href="/login" style="color: var(--accent-green)">LOGIN</a>
-            <a th:href="@{/draft/my-teams(username=${user != null ? user.username : ''})}">My Teams</a>
+            <a th:href="@{/my-teams(username=${user != null ? user.username : ''})}">My Teams</a>
         </div>
     </nav>
 
     <div class="utility-box search-container">
         <h2 style="font-family: 'Oswald'; margin-top: 0; text-transform: uppercase;">Find Your Entries</h2>
-        <form th:action="@{/}" method="get" class="form-row">
+        <form th:action="@{/my-teams}" method="get" class="form-row">
             <input type="text" name="username" placeholder="Draft Username..." required style="width: 250px;"/>
             <button type="submit" class="btn-action" style="background: var(--accent-red);">Search</button>
         </form>
@@ -224,4 +223,4 @@
 </div>
 
 </body>
-</html>
+</html>ackground: var(--bg

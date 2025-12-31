@@ -23,34 +23,49 @@
 
     .container { max-width: 900px; margin: 0 auto; }
 
-    h1 { font-family: 'Oswald', sans-serif; text-transform: uppercase; color: var(--accent-red); }
+    h1 { font-family: 'Oswald', sans-serif; text-transform: uppercase; color: var(--accent-red); margin-bottom: 5px;}
 
     .team-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
+      padding: 25px;
+      margin-bottom: 25px;
+      position: relative;
+      border-left: 4px solid var(--accent-red);
     }
 
     .contest-info {
       border-bottom: 1px solid var(--border);
-      padding-bottom: 10px;
-      margin-bottom: 15px;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
     }
 
     .athlete-list {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
     }
 
     .athlete-item {
-      font-size: 0.9rem;
-      color: #94a3b8;
+      padding: 10px;
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
     }
 
-    .athlete-item strong { color: var(--text-light); }
+    .athlete-item span {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .athlete-item strong {
+      color: var(--text-light);
+      font-size: 1rem;
+    }
 
     .btn-back {
       display: inline-block;
@@ -59,49 +74,60 @@
       text-decoration: none;
       font-weight: bold;
     }
+
+    .rank-box {
+      text-align: center;
+      min-width: 80px;
+      padding: 5px;
+      border-radius: 8px;
+      background: #0f172a;
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <a href="/" class="btn-back">← Back to Lobby</a>
+  <a th:href="@{/(username=${searchedUsername})}" class="btn-back">← Back to Lobby</a>
 
   <h1>My Drafted Teams</h1>
-  <p>Viewing entries for: <strong th:text="${searchedUsername}">Username</strong></p>
+  <p style="margin-bottom: 30px; color: #94a3b8;">Viewing entries for: <strong th:text="${searchedUsername}" style="color: var(--accent-green);">Username</strong></p>
 
   <div th:if="${#lists.isEmpty(entries)}">
-    <p>No teams found for this username.</p>
+    <div class="team-card" style="text-align: center; padding: 50px;">
+      <p style="font-size: 1.2rem; color: #94a3b8;">No teams found for this user.</p>
+      <a href="/" style="color: var(--accent-green); text-decoration: none;">Go to the Lobby to enter a contest!</a>
+    </div>
   </div>
 
   <div th:each="entry : ${entries}" class="team-card">
     <div class="contest-info" style="display: flex; justify-content: space-between; align-items: center;">
       <div>
-        <h2 th:text="${entry.fantasyContest.contestName}" style="margin:0; font-family: 'Oswald';">Contest Name</h2>
+        <h2 th:text="${entry.fantasyContest.contestName}" style="margin:0; font-family: 'Oswald'; color: var(--text-light); font-size: 1.5rem;">Contest Name</h2>
         <div style="margin-top: 5px;">
-          <span style="color: var(--accent-green);" th:text="${entry.fantasyContest.rodeoEvent.eventName}">Rodeo Event</span>
-          <span style="margin-left: 15px; color: #94a3b8;" th:text="'Salary: $' + ${#numbers.formatDecimal(entry.totalTeamSalary, 0, 'COMMA', 0, 'POINT')}"></span>
+          <span style="color: var(--accent-green); font-weight: 600;" th:text="${entry.fantasyContest.rodeoEvent.eventName}">Rodeo Event</span>
+          <span style="margin-left: 15px; color: #94a3b8; font-size: 0.9rem;" th:text="'Salary Used: $' + ${#numbers.formatDecimal(entry.totalTeamSalary, 0, 'COMMA', 0, 'POINT')}"></span>
         </div>
       </div>
 
-      <div style="text-align: right; display: flex; align-items: center; gap: 15px;">
-        <div style="text-align: center;">
-          <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Rank</div>
+      <div style="text-align: right; display: flex; align-items: center; gap: 20px;">
+        <div class="rank-box">
+          <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 2px;">Current Rank</div>
           <div th:text="'#' + ${entry.rank}"
-               th:style="${entry.rank == 1} ? 'color: #ffd700; font-size: 1.5rem; font-weight: bold;' : 'color: var(--text-light); font-size: 1.5rem;'">
+               th:style="${entry.rank == 1} ? 'color: #ffd700; font-size: 1.8rem; font-weight: bold; font-family: Oswald;' : 'color: #cbd5e1; font-size: 1.8rem; font-family: Oswald;'">
             #1
           </div>
         </div>
 
         <a th:href="@{/contest/{id}/leaderboard(id=${entry.fantasyContest.id})}"
-           style="background: var(--accent-red); color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-family: 'Oswald'; font-size: 0.9rem; letter-spacing: 1px; display: inline-block;">
+           style="background: var(--accent-red); color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-family: 'Oswald'; font-size: 1rem; font-weight: bold; letter-spacing: 1px; transition: 0.2s; box-shadow: 0 4px 10px rgba(177, 17, 17, 0.3);">
           LIVE STANDINGS
         </a>
       </div>
     </div>
 
-    <div class="athlete-list" style="margin-top: 20px;">
+    <div class="athlete-list">
       <div th:each="selection : ${entry.selections}" class="athlete-item">
-        <span th:text="${selection.contestSetup?.categoryName ?: 'Unknown Category'}">Category</span>
+        <span th:text="${selection.contestSetup?.categoryName ?: 'Event'}">Category</span>
         <strong th:text="${selection.contestant.name}">Athlete Name</strong>
       </div>
     </div>

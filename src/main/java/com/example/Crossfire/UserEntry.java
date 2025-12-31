@@ -59,12 +59,11 @@ public class UserEntry {
         for (DraftSelection selection : selections) {
             Long athleteId = selection.getContestant().getId();
 
-            // Search the results for the matching athlete
+            // Use sum() instead of findFirst() if you want to support multiple rounds/scores
             total += results.stream()
                     .filter(r -> r.getContestant().getId().equals(athleteId))
                     .mapToDouble(LiveScore::getScore)
-                    .findFirst()
-                    .orElse(0.0);
+                    .sum();
         }
         return total;
     }

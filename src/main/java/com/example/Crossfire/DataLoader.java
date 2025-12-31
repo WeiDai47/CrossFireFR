@@ -8,9 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Random;
 
 @Component
 public class DataLoader implements CommandLineRunner {
@@ -43,8 +43,8 @@ public class DataLoader implements CommandLineRunner {
     }
 
     @Override
+    @Transactional // Fixes the LazyInitializationException by keeping the Hibernate session open
     public void run(String... args) throws Exception {
-        // We don't need @Transactional here if we fetch data carefully below
         generateTestData();
     }
 
@@ -56,77 +56,83 @@ public class DataLoader implements CommandLineRunner {
         if (eventRepo.count() == 0) {
             List<Contestant> allPool = contestantRepo.findAll();
 
-            // 1. Create NFR
-            RodeoEvent nfr = createRodeoWithContests("NFR 2025 - Round 1", "Las Vegas, NV",
-                    LocalDate.of(2025, 12, 4), allPool, 50000.0);
+            // 1. Create the NFR Event
+            RodeoEvent nfr = new RodeoEvent();
+            nfr.setEventName("NFR 2025 - Round 1");
+            nfr.setLocation("Las Vegas, NV");
+            nfr.setEventDate(LocalDate.of(2025, 12, 4));
+            nfr.setEventStatus("LIVE");
+            eventRepo.save(nfr);
 
-            // 2. Create Other Rodeo
-            createRodeoWithContests("California Finals Rodeo", "Red Bluff, CA",
-                    LocalDate.of(2025, 10, 15), getRandomRoster(allPool, 10), 45000.0);
+            // 2. Create the High Stakes Contest
+            FantasyContest contest = new FantasyContest();
+            contest.setContestName("NFR $10k High Stakes");
+            contest.setRodeoEvent(nfr);
+            contest.setSalaryCap(50000.0);
+            contest.setEntryFee(new BigDecimal("100.00"));
+            contest.setPrizePool(new BigDecimal("10000.00"));
 
-            // 3. Seed Users and Teams
-            seedLeaderboardTestData(nfr, allPool);
+            // This service method initializes categories (ContestSetup) and links athletes
+            eventService.initializeContestRoster(contest, allPool);
 
-            System.out.println("Test Data Loaded Successfully.");
+            // 3. Seed 10 Users with unique teams and high scores
+            seedCompetitiveLeaderboard(nfr, contest);
+
+            System.out.println("Demo Data Successfully Loaded: 10 Users added to " + contest.getContestName());
         }
     }
 
-    private void seedLeaderboardTestData(RodeoEvent event, List<Contestant> pool) {
-        FantasyContest contest = contestRepo.findAll().stream()
-                .filter(c -> c.getContestName().contains("NFR") && c.getContestName().contains("High Stakes"))
-                .findFirst().orElse(null);
+    private void seedCompetitiveLeaderboard(RodeoEvent event, FantasyContest contest) {
+        Random rand = new Random();
+        String[] usernames = {"RodeoKing", "BuckleBunny", "TrailBoss", "DustyBoots", "CactusJack",
+                "BarrelRacer99", "GritAndGlory", "LassoPro", "SteerStomper", "Outlaw2025"};
 
-        if (contest == null) return;
+        // Fetch the setups created by the eventService (Barrels, Bareback, etc.)
+        List<ContestSetup> setups = setupRepo.findAll();
 
-        // Create Users
-        User user1 = new User();
-        user1.setUsername("RodeoKing");
-        user1.setPassword("password123");
-        user1.setDisplayName("Rodeo King");
-        user1.setEmail("king@crossfire.com");
-        user1.setBalance(new BigDecimal("100.00"));
-        userRepo.save(user1);
+        // Give every athlete in the database a high score (1200.0 - 1850.0)
+        List<Contestant> allAthletes = contestantRepo.findAll();
+        for (Contestant c : allAthletes) {
+            double highScaleScore = 1200.0 + (rand.nextDouble() * 650.0);
+            saveLiveScore(event, c, highScaleScore);
+        }
 
-        User user2 = new User();
-        user2.setUsername("BuckleBunny");
-        user2.setDisplayName("Buckle Bunny");
-        user2.setEmail("bunny@crossfire.com");
-        userRepo.save(user2);
+        for (String name : usernames) {
+            // Create User Account
+            User user = new User();
+            user.setUsername(name);
+            user.setPassword("password");
+            user.setDisplayName(name);
+            user.setEmail(name.toLowerCase() + "@demo.com");
+            user.setBalance(new BigDecimal("500.00"));
+            userRepo.save(user);
 
-        // Create Scores
-        Contestant c1 = pool.get(0);
-        Contestant c2 = pool.get(15);
-        Contestant c3 = pool.get(30);
+            // Create Contest Entry
+            UserEntry entry = new UserEntry();
+            entry.setUsername(name);
+            entry.setUser(user);
+            entry.setFantasyContest(contest);
 
-        saveLiveScore(event, c1, 88.5);
-        saveLiveScore(event, c2, 91.0);
-        saveLiveScore(event, c3, 4.2);
+            double totalSalary = 0;
 
-        // Create Entry
-        UserEntry entry1 = new UserEntry();
-        entry1.setUsername("RodeoKing");
-        entry1.setFantasyContest(contest);
-        entry1.setUser(user1);
+            // Pick 1 unique random athlete from each required category
+            for (ContestSetup setup : setups) {
+                List<Contestant> eligible = setup.getEligibleContestants();
+                if (!eligible.isEmpty()) {
+                    Contestant pick = eligible.get(rand.nextInt(eligible.size()));
 
-        // --- THE FIX IS HERE ---
-        // Instead of asking 'contest.getContestSetups()' (which is null and crashes),
-        // we ask the repository for all setups and find the right one manually.
-        List<ContestSetup> allSetups = setupRepo.findAll();
+                    DraftSelection selection = new DraftSelection();
+                    selection.setContestant(pick);
+                    selection.setContestSetup(setup);
+                    selection.setUserEntry(entry);
 
-        ContestSetup setup = allSetups.stream()
-                .filter(s -> s.getFantasyContest().getId().equals(contest.getId())) // Match the contest
-                .filter(s -> s.getCategoryName().equalsIgnoreCase(c1.getEventType())) // Match the athlete's event
-                .findFirst()
-                .orElse(null);
+                    entry.getSelections().add(selection);
+                    totalSalary += pick.getSalary();
+                }
+            }
 
-        if (setup != null) {
-            DraftSelection selection = new DraftSelection();
-            selection.setContestant(c1);
-            selection.setContestSetup(setup); // This links it correctly so "My Teams" works
-            selection.setUserEntry(entry1);
-            entry1.getSelections().add(selection);
-
-            userEntryRepo.save(entry1);
+            entry.setTotalTeamSalary(totalSalary);
+            userEntryRepo.save(entry);
         }
     }
 
@@ -139,54 +145,24 @@ public class DataLoader implements CommandLineRunner {
         liveScoreRepo.save(ls);
     }
 
-    private RodeoEvent createRodeoWithContests(String name, String loc, LocalDate date, List<Contestant> roster, double cap) {
-        RodeoEvent event = new RodeoEvent();
-        event.setEventName(name);
-        event.setLocation(loc);
-        event.setEventDate(date);
-        event.setEventStatus("UPCOMING");
-        eventRepo.save(event);
-
-        FantasyContest highStakes = new FantasyContest();
-        highStakes.setContestName(name + " - High Stakes");
-        highStakes.setRodeoEvent(event);
-        highStakes.setSalaryCap(cap);
-        highStakes.setEntryFee(new BigDecimal("100.00"));
-        highStakes.setPrizePool(new BigDecimal("10000.00"));
-        eventService.initializeContestRoster(highStakes, roster);
-
-        FantasyContest casual = new FantasyContest();
-        casual.setContestName(name + " - Casual Play");
-        casual.setRodeoEvent(event);
-        casual.setSalaryCap(cap + 5000);
-        casual.setEntryFee(new BigDecimal("5.00"));
-        casual.setPrizePool(new BigDecimal("250.00"));
-        eventService.initializeContestRoster(casual, roster);
-
-        return event;
-    }
-
-    private List<Contestant> getRandomRoster(List<Contestant> pool, int sizePerCategory) {
-        Collections.shuffle(pool);
-        return pool.stream().limit(100).collect(Collectors.toList());
-    }
-
     private void seedAllContestants() {
-        seedCategory("Barrels", List.of("Brittany Tonozzi", "Jordon Briggs", "Hailey Kinsel", "Emily Beisel", "Sissy Winn", "Taycie Matthews", "Lisa Lockhart", "Kassie Mowry", "Wenda Johnson", "Jessica Routier", "Summer Kosel", "Ilyssa Riley", "Stevi Hillman", "Presley Smith", "Jackie Ganter"));
-        seedCategory("Bareback", List.of("Keenan Hayes", "Rockie Patterson", "Tim O'Connell", "Clayton Biglow", "Jess Pope", "Kaycee Feild", "Cole Reiner", "Tilden Hooper", "Rocker Steiner", "Leighton Berry", "Garrett Shadbolt", "Caleb Bennett", "Orin Larsen", "Tanner Aus", "Mason Clements"));
-        seedCategory("Team Roping", List.of("Wade/Thorp", "Egusquiza/Lord", "Wyatt/Tryan", "Driggers/Nogueira", "Crawford/Medlin", "Proctor/Long", "Summers/Collier", "Smith/Eaves", "Lovell/Eiguren", "Tsinigine/Cull", "Snow/Thorp", "Begay/Petska", "Sartain/Rogers", "Thornton/Yates", "Hall/Tryan"));
-        seedCategory("Steer Wrestling", List.of("Dalton Massey", "Jesse Brown", "Tyler Waguespack", "Will Lummus", "Stan Branco", "JD Struxness", "Dakota Eldridge", "Dirk Tavenner", "Bridger Anderson", "Cody Devers", "Stephen Culling", "Tanner Brunner", "Nick Guy", "Trell Etbauer", "Rowdy Parrott"));
-        seedCategory("Saddle Bronc", List.of("Stetson Wright", "Sage Newman", "Zeke Thurston", "Kade Bruno", "Wyatt Casper", "Brody Cress", "Lefty Holman", "Tanner Butner", "Ryder Wright", "Chase Brooks", "Layton Green", "Shorty Garrett", "Logan Hay", "Ben Andersen", "Dawson Hay"));
-        seedCategory("Calf Roping", List.of("Riley Webb", "Shad Mayfield", "Ty Harris", "Cory Solomon", "Westyn Hughes", "Caleb Smidt", "Haven Meged", "Hunter Herrin", "Shane Hanchey", "Tuf Cooper", "Blane Cox", "John Douch", "Jake Pratt", "Beau Cooper", "Zack Jongbloed"));
-        seedCategory("Bull Riding", List.of("Ky Hamilton", "Josh Frost", "Sage Kimzey", "Tristen Hutchings", "Stetson Wright", "Trey Holston", "Jeff Askey", "Creek Young", "Trey Benton III", "Jared Parsonage", "Cullen Telfer", "Jordan Hansen", "Cody Teel", "Toby Collins", "Hayes Weight"));
+        seedCategory("Barrels", List.of("Brittany Tonozzi", "Jordon Briggs", "Hailey Kinsel", "Emily Beisel", "Sissy Winn"));
+        seedCategory("Bareback", List.of("Keenan Hayes", "Rockie Patterson", "Tim O'Connell", "Clayton Biglow", "Jess Pope"));
+        seedCategory("Team Roping", List.of("Wade/Thorp", "Egusquiza/Lord", "Wyatt/Tryan", "Driggers/Nogueira", "Crawford/Medlin"));
+        seedCategory("Steer Wrestling", List.of("Dalton Massey", "Jesse Brown", "Tyler Waguespack", "Will Lummus", "Stan Branco"));
+        seedCategory("Saddle Bronc", List.of("Stetson Wright", "Sage Newman", "Zeke Thurston", "Kade Bruno", "Wyatt Casper"));
+        seedCategory("Calf Roping", List.of("Riley Webb", "Shad Mayfield", "Ty Harris", "Cory Solomon", "Westyn Hughes"));
+        seedCategory("Bull Riding", List.of("Ky Hamilton", "Josh Frost", "Sage Kimzey", "Tristen Hutchings", "Stetson Wright"));
     }
 
     private void seedCategory(String category, List<String> names) {
+        Random rand = new Random();
         for (String name : names) {
             Contestant c = new Contestant();
             c.setName(name);
             c.setEventType(category);
-            c.setSalary(Math.round(4000.0 + (Math.random() * 5500.0)));
+            // Salaries between 6,000 and 9,000
+            c.setSalary(6000.0 + (rand.nextDouble() * 3000.0));
             contestantRepo.save(c);
         }
     }
