@@ -2,6 +2,9 @@ package com.example.Crossfire;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -21,6 +24,24 @@ public class User {
     private String password;
     private String displayName;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<UserEntry> entries;
+
+    // --- FUNDS SECTION ---
+    @Column(nullable = false)
+    private BigDecimal balance = BigDecimal.ZERO;
+
+    // --- RELATIONSHIPS ---
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserEntry> entries = new ArrayList<>(); // Initialized to avoid null errors
+
+    /**
+     * Helper method to add winnings to the user's account balance.
+     */
+    public void addWinnings(BigDecimal amount) {
+        if (amount != null) {
+            this.balance = this.balance.add(amount);
+        }
+    }
 }
+
+
+

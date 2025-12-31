@@ -81,8 +81,11 @@ public class DataLoader implements CommandLineRunner {
         // Create 2 Test Users with required Email field
         User user1 = new User();
         user1.setUsername("RodeoKing");
+        user1.setPassword("password123"); // Set a password
         user1.setDisplayName("Rodeo King");
-        user1.setEmail("king@crossfire.com"); // ADD THIS LINE
+        user1.setEmail("king@crossfire.com");
+        user1.setBalance(new BigDecimal("100.00"));
+         // ADD THIS LINE
         userRepo.save(user1);
 
         User user2 = new User();
