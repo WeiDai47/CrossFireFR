@@ -22,9 +22,30 @@ public class AdminManagementController {
     private RodeoEventRepository eventRepo;
     @Autowired
     private UserRepository userRepo; // This refers to the UserRepository.java file
+    @Autowired private LiveScoreRepository liveScoreRepo;
 
     @Autowired
     private FantasyContestRepository contestRepo;
+
+    // Unified "Add Contestant" Methods
+    @GetMapping("/add")
+    public String showAddForm(Model model) {
+        model.addAttribute("contestant", new Contestant());
+        return "admin-add";
+    }
+
+    @PostMapping("/add")
+    public String saveContestantaddpage(@ModelAttribute Contestant contestant) {
+        // Use the name 'athleteRepo' defined at the top
+        athleteRepo.save(contestant);
+        return "redirect:/admin/manage";
+    }
+
+    // Move the dashboard here as well
+    @GetMapping("/dashboard")
+    public String adminDashboard() {
+        return "admin-dashboard";
+    }
 
     @GetMapping("/contest/{id}/setup")
     public String showSetupRoster(@PathVariable Long id, Model model) {
