@@ -48,6 +48,15 @@ public class DraftController {
 
         FantasyContest contest = contestRepo.findById(contestId).orElseThrow();
 
+        // 1. THIS IS THE "USAGE" - Check the entry limit before doing anything else
+        long entryCount = userEntryRepo.countByUsernameAndFantasyContestId(username, contestId);
+
+        if (entryCount >= contest.getMaxEntriesPerUser()) {
+            String errorMsg = "Error: You have already reached the limit of " +
+                    contest.getMaxEntriesPerUser() + " entries for this contest.";
+            return "redirect:/draft/" + contestId + "?error=" + errorMsg;
+        }
+
         UserEntry entry = new UserEntry();
         entry.setUsername(username);
         entry.setFantasyContest(contest); // Link to the specific game

@@ -2,112 +2,54 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Add Contestant | Crossfire Rodeo</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-dark: #0f172a;
-            --card-bg: #1e293b;
-            --accent-red: #b11111;
-            --accent-green: #0bea00;
-            --text-light: #f8fafc;
-            --border: #334155;
-            --input-bg: #0f172a;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .admin-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 40px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        h2 {
-            font-family: 'Oswald', sans-serif;
-            text-transform: uppercase;
-            color: var(--accent-green);
-            font-size: 2rem;
-            margin-bottom: 30px;
-            text-align: center;
-            border-bottom: 2px solid var(--accent-red);
-            padding-bottom: 10px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 12px;
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: white;
-            font-size: 1rem;
-            box-sizing: border-box;
-            transition: border-color 0.3s ease;
-        }
-
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: var(--accent-green);
-            box-shadow: 0 0 5px rgba(11, 234, 0, 0.2);
-        }
-
-        .btn-submit {
-            width: 100%;
-            background: var(--accent-green);
-            color: #000;
-            border: none;
-            padding: 15px;
-            font-family: 'Oswald', sans-serif;
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: transform 0.2s, background 0.2s;
-        }
-
-        .btn-submit:hover {
-            background: #09bc00;
-            transform: translateY(-2px);
-        }
+        :root { --bg-dark: #0f172a; --card-bg: #1e293b; --accent-red: #b11111; --accent-green: #0bea00; --text-light: #f8fafc; --border: #334155; --input-bg: #0f172a; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-light); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; flex-direction: column; }
+        .admin-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 40px; width: 100%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { font-family: 'Oswald', sans-serif; text-transform: uppercase; color: var(--accent-green); font-size: 2rem; margin-bottom: 30px; text-align: center; border-bottom: 2px solid var(--accent-red); padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; color: #94a3b8; text-transform: uppercase; }
+        input, select { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; color: white; font-size: 1rem; box-sizing: border-box; }
+        .btn-submit { width: 100%; background: var(--accent-green); color: #000; border: none; padding: 15px; font-family: 'Oswald'; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+        .back-link { color: #94a3b8; text-decoration: none; margin-bottom: 20px; font-size: 0.9rem; align-self: center; }
+        .back-link:hover { color: var(--accent-green); }
     </style>
 </head>
 <body>
 
-<a href="/admin/scoring" style="color: var(--accent-green); text-decoration: none; font-size: 0.8rem;">← Go to Scoring Dashboard</a>
+<a href="/admin/dashboard" class="back-link">← Back to Admin Dashboard</a>
 
-<form th:action="@{/admin/add}" th:object="${contestant}" method="post">
+<div class="admin-card">
+    <h2>Add New Athlete</h2>
+    <form th:action="@{/admin/add}" th:object="${contestant}" method="post">
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" th:field="*{name}" placeholder="e.g. Stetson Wright" required>
+        </div>
+
+        <div class="form-group">
+            <label>Primary Event</label>
+            <select th:field="*{eventType}" required>
+                <option value="Bull Riding">Bull Riding</option>
+                <option value="Saddle Bronc">Saddle Bronc</option>
+                <option value="Bareback">Bareback</option>
+                <option value="Steer Wrestling">Steer Wrestling</option>
+                <option value="Team Roping">Team Roping</option>
+                <option value="Tie-Down Roping">Tie-Down Roping</option>
+                <option value="Barrel Racing">Barrel Racing</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Salary Value ($)</label>
+            <input type="number" th:field="*{salary}" placeholder="e.g. 9500" required>
+        </div>
+
+        <button type="submit" class="btn-submit">Save Contestant</button>
+    </form>
+</div>
 
 </body>
 </html>

@@ -7,12 +7,20 @@ import java.util.List;
 
 @Entity
 @Data
+@Table(name = "fantasy_contests")
 public class FantasyContest {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // This makes the column name "fantasy_contest_id" in SQL
+    @Column(name = "fantasy_contest_id")
     private Long id;
 
     private String contestName;
+
+    // The new column to limit how many times one user can enter this contest
+    @Column(name = "max_entries_per_user")
+    private int maxEntriesPerUser = 1; // Default to 1 entry per user
 
     // This property name must match the 'mappedBy' in RodeoEvent
     @ManyToOne
@@ -27,6 +35,8 @@ public class FantasyContest {
     @OneToMany(mappedBy = "fantasyContest", cascade = CascadeType.ALL)
     private List<ContestSetup> contestSetups;
 
-    @OneToMany(mappedBy = "fantasyContest")
+    // Inside FantasyContest.java
+
+    @OneToMany(mappedBy = "fantasyContest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserEntry> userEntries;
 }

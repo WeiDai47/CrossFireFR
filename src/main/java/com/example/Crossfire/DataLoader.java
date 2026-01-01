@@ -68,6 +68,7 @@ public class DataLoader implements CommandLineRunner {
             FantasyContest contest = new FantasyContest();
             contest.setContestName("NFR $10k High Stakes");
             contest.setRodeoEvent(nfr);
+            contest.setMaxEntriesPerUser(3);
             contest.setSalaryCap(50000.0);
             contest.setEntryFee(new BigDecimal("100.00"));
             contest.setPrizePool(new BigDecimal("10000.00"));

@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface UserEntryRepository extends JpaRepository<UserEntry, Long> {
     List<UserEntry> findByUsername(String username);
+    long countByUsernameAndFantasyContestId(String username, Long contestId);
 }

@@ -18,7 +18,10 @@ public class RodeoEvent {
     private String eventStatus;
     private double salaryCap;
 
-    // FIX: The error was here. RodeoEvent now maps to FantasyContest.
-    @OneToMany(mappedBy = "rodeoEvent", cascade = CascadeType.ALL)
-    private List<FantasyContest> fantasyContests;
+    @OneToMany(mappedBy = "rodeoEvent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LiveScore> liveScores;
+
+    // Also ensure your relationship to FantasyContest has it too!
+    @OneToMany(mappedBy = "rodeoEvent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FantasyContest> contests;
 }

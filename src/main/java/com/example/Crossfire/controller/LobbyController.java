@@ -2,7 +2,9 @@ package com.example.Crossfire.controller;
 
 import com.example.Crossfire.FantasyContest;
 import com.example.Crossfire.User;
+import com.example.Crossfire.UserEntry;
 import com.example.Crossfire.repository.FantasyContestRepository;
+import com.example.Crossfire.repository.UserEntryRepository;
 import com.example.Crossfire.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 public class LobbyController {
@@ -20,6 +23,9 @@ public class LobbyController {
 
     @Autowired
     private UserRepository userRepo; // Needed to find the user by their name
+
+    @Autowired
+    private UserEntryRepository userEntryRepo;
 
     /**
      * This handles the home page (the Lobby).
@@ -33,13 +39,22 @@ public class LobbyController {
 
         // 2. Check if a username was provided in the URL (e.g., /?username=RodeoKing)
         if (username != null && !username.isEmpty()) {
-            // Find the user and add them to the model if they exist
             userRepo.findByUsername(username).ifPresent(user -> {
                 model.addAttribute("user", user);
+
+                // Fetch the user's entries to see which contests they joined
+                List<UserEntry> userEntries = userEntryRepo.findByUsername(username);
+
+                // Create a list of Contest IDs the user is already in
+                List<Long> enteredContestIds = userEntries.stream()
+                        .map(entry -> entry.getFantasyContest().getId())
+                        .collect(Collectors.toList());
+
+                model.addAttribute("enteredContestIds", enteredContestIds);
             });
         }
 
-        // 3. Return the lobby.html template
         return "lobby";
+
     }
 }

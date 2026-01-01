@@ -12,4 +12,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Add this line to fix the error in AccountController
     Optional<User> findByUsername(String username);
+
 }

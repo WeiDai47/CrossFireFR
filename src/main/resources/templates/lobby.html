@@ -198,6 +198,12 @@
 
     <div class="contest-grid">
         <div th:each="contest : ${contests}" class="contest-card">
+
+            <div th:if="${enteredContestIds != null and enteredContestIds.contains(contest.id)}"
+                 style="position: absolute; top: 10px; left: 10px; background: var(--accent-green); color: black; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; z-index: 10;">
+                ✓ ENTERED
+            </div>
+
             <div class="entry-fee-badge" th:text="${contest.entryFee == T(java.math.BigDecimal).ZERO} ? 'FREE' : '$' + ${contest.entryFee}">$10</div>
 
             <h2 th:text="${contest.contestName}" style="margin: 0 0 5px 0; color: var(--accent-green); font-family: 'Oswald';">Contest Name</h2>
@@ -209,9 +215,15 @@
 
             <p><strong>Prize Pool:</strong> <span style="color: var(--accent-green)" th:text="'$' + ${#numbers.formatDecimal(contest.prizePool, 0, 'COMMA', 0, 'POINT')}">$1,000</span></p>
             <p><strong>Salary Cap:</strong> $<span th:text="${#numbers.formatDecimal(contest.salaryCap, 0, 'COMMA', 0, 'POINT')}">50,000</span></p>
+
+            <p><strong>Entry Limit:</strong> <span th:text="${contest.maxEntriesPerUser}">1</span> per user</p>
+
             <p><strong>Date:</strong> <span th:text="${contest.rodeoEvent.eventDate}">2025-12-04</span></p>
 
-            <a th:href="@{'/draft/' + ${contest.id}}" class="btn-draft">Enter Draft Room</a>
+            <a th:href="@{'/draft/' + ${contest.id}(username=${user != null ? user.username : ''})}"
+               class="btn-draft">
+                <span th:text="${enteredContestIds != null and enteredContestIds.contains(contest.id)} ? 'DRAFT ANOTHER TEAM' : 'ENTER DRAFT ROOM'"></span>
+            </a>
         </div>
     </div>
 
