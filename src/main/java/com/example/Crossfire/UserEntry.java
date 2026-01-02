@@ -1,7 +1,13 @@
 package com.example.Crossfire;
 
+import com.example.Crossfire.repository.UserEntryRepository;
+import com.example.Crossfire.repository.UserRepository;
 import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +17,8 @@ import java.util.List;
 @Entity
 @Data
 public class UserEntry {
+
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -78,4 +86,7 @@ public class UserEntry {
         selections.add(selection);
         selection.setUserEntry(this);
     }
+
+
+
 }

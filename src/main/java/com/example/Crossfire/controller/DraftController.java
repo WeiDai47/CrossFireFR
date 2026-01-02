@@ -24,6 +24,7 @@ public class DraftController {
     // The ID in the URL is now the FantasyContest ID
     @GetMapping("/{contestId}")
     public String showDraftPage(@PathVariable Long contestId,
+                                @RequestParam String username,
                                 @RequestParam(required = false) String error,
                                 Model model) {
 
@@ -80,13 +81,14 @@ public class DraftController {
         String result = draftService.validateAndSaveEntry(entry);
 
         if (result.startsWith("Error")) {
-            return "redirect:/draft/" + contestId + "?error=" + result;
+            // Updated to ensure username is passed back even on error if needed
+            return "redirect:/draft/" + contestId + "?username=" + username + "&error=" + result;
         }
 
-        return "redirect:/draft/my-teams?username=" + username;
+        return "redirect:/my-teams?username=" + username;
     }
 
-    @GetMapping("/my-teams")
+    @GetMapping({"/my-teams"})
     public String showMyTeams(@RequestParam(required = false) String username, Model model) {
         if (username != null && !username.isEmpty()) {
             List<UserEntry> myEntries = userEntryRepo.findByUsername(username);
