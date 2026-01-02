@@ -18,10 +18,13 @@ public class AccountController {
 
     @GetMapping("/deposit")
     public String showDepositPage(@RequestParam String username, Model model) {
-        userRepo.findByUsername(username).ifPresent(user -> model.addAttribute("user", user));
-        return "deposit"; // Ensure this is outside the ifPresent block
-    }
+        // Find user or throw error - don't silently fail
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
+        model.addAttribute("user", user);
+        return "deposit";
+    }
     @PostMapping("/add-funds")
     public String addFunds(@RequestParam String username, @RequestParam BigDecimal amount) {
         userRepo.findByUsername(username).ifPresent(user -> {

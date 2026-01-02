@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Master Roster Management | Crossfire Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #0f172a; --card-bg: #1e293b; --accent-red: #b11111; --accent-green: #0bea00; --text-light: #f8fafc; --border: #334155; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-light); padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+        /* Search Bar Style */
+        .search-container { background: var(--card-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; display: flex; gap: 10px; }
+        .search-input { flex-grow: 1; padding: 10px; background: var(--bg-dark); border: 1px solid var(--border); color: white; border-radius: 4px; }
+
+        table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); font-size: 0.85rem; }
+        th { background: #0f172a; color: var(--accent-green); text-transform: uppercase; padding: 12px; text-align: left; }
+        td { padding: 5px 10px; border-bottom: 1px solid var(--border); }
+
+        /* Input Styles for Spreadsheet feel */
+        input, select, textarea { width: 100%; padding: 8px; background: transparent; border: 1px solid transparent; color: white; border-radius: 4px; box-sizing: border-box; }
+        input:focus, select:focus, textarea:focus { background: var(--bg-dark); border-color: var(--accent-green); outline: none; }
+        .row-modified { background: rgba(11, 234, 0, 0.05); }
+
+        .btn-save { background: var(--accent-green); color: black; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; visibility: hidden; }
+        .visible { visibility: visible !important; }
+        .btn-delete { color: #ff4444; text-decoration: none; font-weight: bold; }
+
+        .add-row { background: rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header-actions">
+        <h1 style="font-family: 'Oswald'; text-transform: uppercase; color: var(--accent-red); margin: 0;">Master Athlete Management</h1>
+        <a href="/admin/dashboard" style="color: #94a3b8; text-decoration: none;">← Back</a>
+    </div>
+
+    <!-- 1. SEARCH BAR -->
+    <form class="search-container" action="/admin/roster" method="get">
+        <input type="text" name="search" class="search-input" placeholder="Search by name..." th:value="${search}">
+        <button type="submit" style="background: var(--accent-red); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-family: 'Oswald';">SEARCH</button>
+        <a href="/admin/roster" style="color: #94a3b8; align-self: center; text-decoration: none;">Clear</a>
+    </form>
+
+    <table>
+        <thead>
+        <tr>
+            <th style="width: 50px;">ID</th>
+            <th>Name</th>
+            <th style="width: 150px;">Event Type</th>
+            <th style="width: 100px;">Salary</th>
+            <th style="width: 80px;">Injured</th>
+            <th>Bio</th>
+            <th style="width: 120px;">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- 2. EDITABLE ROWS -->
+        <tr th:each="athlete : ${athletes}" th:id="'row-' + ${athlete.id}">
+            <td th:text="${athlete.id}" style="color: #475569;"></td>
+            <td><input type="text" th:id="'name-' + ${athlete.id}" th:value="${athlete.name}" th:oninput="'markModified(' + ${athlete.id} + ')'"></td>
+            <td>
+                <select th:id="'type-' + ${athlete.id}" th:onchange="'markModified(' + ${athlete.id} + ')'">
+                    <option th:each="type : ${ {'Bull Riding', 'Saddle Bronc', 'Bareback', 'Steer Wrestling', 'Team Roping', 'Tie-Down Roping', 'Barrel Racing'} }"
+                            th:value="${type}" th:text="${type}" th:selected="${type == athlete.eventType}"></option>
+                </select>
+            </td>
+            <td><input type="number" th:id="'salary-' + ${athlete.id}" th:value="${athlete.salary}" th:oninput="'markModified(' + ${athlete.id} + ')'"></td>
+            <td style="text-align: center;">
+                <input type="checkbox" th:id="'injured-' + ${athlete.id}" th:checked="${athlete.isInjured}" th:onchange="'markModified(' + ${athlete.id} + ')'" style="width: 20px;">
+            </td>
+            <td><textarea th:id="'bio-' + ${athlete.id}" th:text="${athlete.bio}" th:oninput="'markModified(' + ${athlete.id} + ')'" rows="1"></textarea></td>
+            <td>
+                <button th:id="'btn-' + ${athlete.id}" class="btn-save" th:onclick="'saveRow(' + ${athlete.id} + ')'">SAVE</button>
+                <a th:href="@{/admin/roster/delete/{id}(id=${athlete.id})}" class="btn-delete" onclick="return confirm('Delete permanently?')">DEL</a>
+            </td>
+        </tr>
+
+        <!-- 3. ADD NEW ROW -->
+        <tr class="add-row">
+            <form th:action="@{/admin/roster/add}" method="post">
+                <td>NEW</td>
+                <td><input type="text" name="name" placeholder="Full Name" required></td>
+                <td>
+                    <select name="eventType">
+                        <option value="Bull Riding">Bull Riding</option>
+                        <option value="Saddle Bronc">Saddle Bronc</option>
+                        <option value="Bareback">Bareback</option>
+                        <option value="Steer Wrestling">Steer Wrestling</option>
+                        <option value="Team Roping">Team Roping</option>
+                        <option value="Tie-Down Roping">Tie-Down Roping</option>
+                        <option value="Barrel Racing">Barrel Racing</option>
+                    </select>
+                </td>
+                <td><input type="number" name="salary" placeholder="Salary" required></td>
+                <td></td>
+                <td><input type="text" name="bio" placeholder="Athlete Bio..."></td>
+                <td><button type="submit" style="background: var(--accent-green); border:none; padding: 8px; border-radius: 4px; font-weight: bold; width: 100%;">+ ADD</button></td>
+            </form>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    function markModified(id) {
+        document.getElementById('row-' + id).classList.add('row-modified');
+        document.getElementById('btn-' + id).classList.add('visible');
+    }
+
+    async function saveRow(id) {
+        const formData = new URLSearchParams();
+        formData.append('id', id);
+        formData.append('name', document.getElementById('name-' + id).value);
+        formData.append('eventType', document.getElementById('type-' + id).value);
+        formData.append('salary', document.getElementById('salary-' + id).value);
+        formData.append('bio', document.getElementById('bio-' + id).value);
+        formData.append('isInjured', document.getElementById('injured-' + id).checked);
+
+        const response = await fetch('/admin/roster/update', { method: 'POST', body: formData });
+        if (response.ok) {
+            document.getElementById('row-' + id).classList.remove('row-modified');
+            document.getElementById('btn-' + id).classList.remove('visible');
+        }
+    }
+</script>
+</body>
+</html>

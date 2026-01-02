@@ -94,8 +94,8 @@ public class DataLoader implements CommandLineRunner {
         // Give every athlete in the database a high score (1200.0 - 1850.0)
         List<Contestant> allAthletes = contestantRepo.findAll();
         for (Contestant c : allAthletes) {
-            double highScaleScore = 1200.0 + (rand.nextDouble() * 650.0);
-            saveLiveScore(event, c, highScaleScore);
+            int highScaleScore = 1200 + rand.nextInt(651);
+            saveLiveScore(event, c, (double) highScaleScore);
         }
 
         for (String name : usernames) {

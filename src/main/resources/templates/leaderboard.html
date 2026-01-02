@@ -9,14 +9,19 @@
         body { background: #0f172a; color: white; font-family: sans-serif; padding: 40px; }
         .leaderboard-table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 10px; overflow: hidden; }
         .leaderboard-table th, .leaderboard-table td { padding: 15px; text-align: left; border-bottom: 1px solid #334155; }
-        .rank-1 { color: #0bea00; font-weight: bold; } /* Green for the leader */
-        .live-indicator { color: #ff4444; font-weight: bold; animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .rank-1 { color: #0bea00; font-weight: bold; }
+        .username-click { cursor: pointer; color: #cbd5e1; text-decoration: underline dotted; }
+        .username-click:hover { color: #0bea00; }
+
+        /* The dropdown styles */
+        .team-details { display: none; padding: 10px 15px; background: #0f172a; font-size: 0.7rem; color: #94a3b8; border-top: 1px solid #334155; }
+        .athlete-mini { display: inline-block; margin-right: 15px; }
+        .athlete-mini strong { color: #f8fafc; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 <h1 th:text="${contest.contestName} + ' - LIVE STANDINGS'">Leaderboard</h1>
-<p class="live-indicator">● LIVE UPDATING</p>
+<p style="color: #ff4444; font-size: 0.8rem;">● LIVE UPDATING (Click name to see team)</p>
 
 <table class="leaderboard-table">
     <thead>
@@ -27,12 +32,36 @@
     </tr>
     </thead>
     <tbody>
-    <tr th:each="entry, iter : ${entries}" th:classappend="${iter.index == 0} ? 'rank-1'">
-        <td th:text="${iter.index + 1}">1</td>
-        <td th:text="${entry.username}">Username</td>
-        <td th:text="${entry.totalScore}">0.0</td>
-    </tr>
+    <th:block th:each="entry, iter : ${entries}">
+        <tr th:classappend="${iter.index == 0} ? 'rank-1'">
+            <td th:text="${iter.index + 1}">1</td>
+            <td>
+                    <span class="username-click" th:text="${entry.username}"
+                          th:onclick="'toggleTeam(' + ${entry.id} + ')'">Username</span>
+            </td>
+            <td th:text="${entry.liveScore}">0.0</td>
+        </tr>
+        <!-- The Hidden Dropdown Row -->
+        <tr th:id="'details-' + ${entry.id}" class="team-details">
+            <td colspan="3">
+                <div style="display: flex; flex-wrap: wrap;">
+                    <div th:each="selection : ${entry.selections}" class="athlete-mini">
+                        <span th:text="${selection.contestSetup.categoryName}">Category</span>:
+                        <strong th:text="${selection.contestant.name}">Name</strong>
+                        (<span th:text="${scoreMap.get(selection.contestant.id) ?: '0.0'}">0</span>)
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </th:block>
     </tbody>
 </table>
+
+<script>
+    function toggleTeam(id) {
+        const el = document.getElementById('details-' + id);
+        el.style.display = (el.style.display === 'table-row') ? 'none' : 'table-row';
+    }
+</script>
 </body>
 </html>

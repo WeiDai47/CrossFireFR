@@ -62,6 +62,7 @@ public class LeaderboardController {
         model.addAttribute("contest", contest);
         model.addAttribute("rodeoName", contest.getRodeoEvent().getEventName());
         model.addAttribute("entries", entries);
+        model.addAttribute("scoreMap", scoreMap); // Added to support team details in leaderboard.html
 
         return "leaderboard";
     }
@@ -69,18 +70,20 @@ public class LeaderboardController {
     @GetMapping("/my-teams")
     @Transactional(readOnly = true)
     public String showMyTeams(@RequestParam String username, Model model) {
-        // 1. PRINT TO CONSOLE IMMEDIATELY
-        System.out.println("--- DEBUG START ---");
-        System.out.println("Browser requested My Teams for: " + username);
-
+        // ... existing debug code ...
         List<UserEntry> entries = userEntryRepository.findByUsername(username);
 
-        // 2. PRINT THE COUNT
-        System.out.println("Database found " + entries.size() + " entries.");
+        // Create a map to hold all athlete scores across all rodeos the user has entered
+        java.util.Map<Long, Double> athleteScores = new java.util.HashMap<>();
 
         for (UserEntry entry : entries) {
             FantasyContest contest = entry.getFantasyContest();
             List<LiveScore> eventScores = liveScoreRepo.findByRodeoEvent(contest.getRodeoEvent());
+
+            // Store individual athlete scores in our map
+            for (LiveScore ls : eventScores) {
+                athleteScores.put(ls.getContestant().getId(), ls.getScore());
+            }
 
             double myScore = entry.calculateTotalScore(eventScores);
             entry.setLiveScore(myScore);
@@ -93,13 +96,14 @@ public class LeaderboardController {
 
             entry.setRank((int) higherTeams + 1);
 
-            // 3. PRINT INDIVIDUAL RESULTS
-            System.out.println("Calculated Rank for Team " + entry.getId() + ": #" + entry.getRank());
+
+
         }
 
-        System.out.println("--- DEBUG END ---");
+
 
         model.addAttribute("entries", entries);
+        model.addAttribute("athleteScores", athleteScores); // Add the score map to the model
         model.addAttribute("searchedUsername", username);
         return "my-teams";
     }

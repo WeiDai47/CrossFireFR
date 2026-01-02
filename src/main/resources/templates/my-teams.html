@@ -127,8 +127,18 @@
 
     <div class="athlete-list">
       <div th:each="selection : ${entry.selections}" class="athlete-item">
-        <span th:text="${selection.contestSetup?.categoryName ?: 'Event'}">Category</span>
-        <strong th:text="${selection.contestant.name}">Athlete Name</strong>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <span th:text="${selection.contestSetup?.categoryName ?: 'Event'}">Category</span>
+            <strong th:text="${selection.contestant.name}">Athlete Name</strong>
+          </div>
+          <!-- Score Display -->
+          <div style="text-align: right;">
+            <span style="color: var(--accent-green); font-size: 0.75rem;">SCORE</span>
+            <div th:text="${athleteScores.get(selection.contestant.id) != null ? athleteScores.get(selection.contestant.id) : '0.0'}"
+                 style="font-family: 'Oswald'; font-size: 1.1rem; color: var(--accent-green);">0.0</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

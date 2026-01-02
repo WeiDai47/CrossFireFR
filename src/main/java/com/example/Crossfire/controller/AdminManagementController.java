@@ -27,7 +27,7 @@ public class AdminManagementController {
     @GetMapping("/add")
     public String showAddForm(Model model) {
         model.addAttribute("contestant", new Contestant());
-        return "admin-add";
+        return "admin-livescore";
     }
 
     @PostMapping("/add")

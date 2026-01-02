@@ -45,9 +45,13 @@
         <div class="nav-links" th:if="${user != null}" style="display: flex; align-items: center; gap: 15px;">
             <span style="color: #94a3b8;">Welcome, <strong th:text="${user.username}" style="color: white;"></strong></span>
 
-            <div style="background: rgba(11, 234, 0, 0.1); border: 1px solid var(--accent-green); padding: 5px 15px; border-radius: 20px; color: var(--accent-green); font-family: 'Oswald';">
-                WALLET: $<span th:text="${#numbers.formatDecimal(user.balance, 1, 'COMMA', 2, 'POINT')}"></span>
-            </div>
+            <!-- CHANGE: Wrap the wallet div in an anchor tag linking to /deposit -->
+            <a th:href="@{/account/deposit(username=${user.username})}" style="text-decoration: none;">
+                <div style="background: rgba(11, 234, 0, 0.1); border: 1px solid var(--accent-green); padding: 5px 15px; border-radius: 20px; color: var(--accent-green); font-family: 'Oswald'; cursor: pointer;">
+                    WALLET: $<span th:text="${#numbers.formatDecimal(user.balance, 1, 'COMMA', 2, 'POINT')}"></span>
+                    <span style="margin-left: 5px; font-size: 0.8rem;">[+]</span>
+                </div>
+            </a>
 
             <a th:href="@{/my-teams(username=${user.username})}" class="nav-link-item">My Teams</a>
 
