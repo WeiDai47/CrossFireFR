@@ -31,9 +31,14 @@ public class AdminManagementController {
     }
 
     @PostMapping("/add")
-    public String saveContestantaddpage(@ModelAttribute Contestant contestant) {
+    public String saveContestantaddpage(@ModelAttribute Contestant contestant,
+                                        @RequestParam(value = "action", defaultValue = "save") String action) {
         athleteRepo.save(contestant);
-        return "redirect:/admin/manage";
+
+        if ("saveAndAdd".equals(action)) {
+            return "redirect:/admin/add?success=true";
+        }
+        return "redirect:/"; // Redirects to the Lobby
     }
 
 

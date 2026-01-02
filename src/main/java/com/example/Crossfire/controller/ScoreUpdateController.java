@@ -11,6 +11,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Controller // Use @Controller to return HTML views
 @RequestMapping("/admin/scoring")
 public class ScoreUpdateController {
@@ -26,10 +30,22 @@ public class ScoreUpdateController {
 
     // This fixes the 404/Error page when you go to http://localhost:8080/admin/scoring
     @GetMapping
-    public String showScoringPage(Model model) {
-        model.addAttribute("events", eventRepo.findAll());
-        model.addAttribute("athletes", athleteRepo.findAll());
-        return "admin-scoring-live"; // Must match the filename admin-scoring-live.html
+    public String showScoringPage(@RequestParam(required = false) Long eventId, Model model) {
+        List<RodeoEvent> events = eventRepo.findAll();
+        model.addAttribute("events", events);
+
+        if (eventId != null) {
+            RodeoEvent selectedEvent = eventRepo.findById(eventId).orElseThrow();
+            model.addAttribute("selectedEventId", eventId);
+            model.addAttribute("athletes", athleteRepo.findAll());
+
+            // Map existing scores: ContestantID -> ScoreValue
+            Map<Long, Double> currentScores = scoreRepo.findByRodeoEvent(selectedEvent).stream()
+                    .collect(Collectors.toMap(s -> s.getContestant().getId(), LiveScore::getScore));
+            model.addAttribute("currentScores", currentScores);
+        }
+
+        return "admin-scoring-live";
     }
 
     // This handles the JavaScript Fetch request from the page
