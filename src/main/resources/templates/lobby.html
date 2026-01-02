@@ -33,6 +33,13 @@
         .badge-guaranteed { background: var(--accent-red); color: white; }
         .badge-dynamic { background: var(--accent-green); color: black; }
 
+        .status-tag { font-family: 'Oswald'; font-size: 0.75rem; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+        .status-tag.live { background: #ff0000; color: white; animation: blinker 1.5s linear infinite; }
+        .status-tag.upcoming { background: #2563eb; color: white; }
+        .status-tag.ended { background: #000000; color: #94a3b8; border: 1px solid var(--border); }
+
+        @keyframes blinker { 50% { opacity: 0.4; } }
+
         .nav-link-item { color: var(--text-light); text-decoration: none; margin-left: 20px; font-weight: 600; text-transform: uppercase; font-size: 0.9rem; transition: color 0.2s; }
         .nav-link-item:hover { color: var(--accent-green); }
     </style>
@@ -81,7 +88,12 @@
 
             <div class="entry-fee-badge" th:text="${contest.entryFee == 0} ? 'FREE' : '$' + ${contest.entryFee}"></div>
 
-            <h2 th:text="${contest.contestName}" style="margin: 0; color: var(--accent-green); font-family: 'Oswald';"></h2>
+            <h2 style="margin: 0; color: var(--accent-green); font-family: 'Oswald';">
+                <span th:text="${contest.contestName}">Contest Name</span>
+                <span th:if="${contest.rodeoEvent.eventStatus == 'LIVE'}" class="status-tag live">● LIVE</span>
+                <span th:if="${contest.rodeoEvent.eventStatus == 'UPCOMING'}" class="status-tag upcoming">UPCOMING</span>
+                <span th:if="${contest.rodeoEvent.eventStatus == 'ENDED'}" class="status-tag ended">ENDED</span>
+            </h2>
             <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px;">
                 <span th:text="${contest.rodeoEvent.eventName}"></span> | <span th:text="${contest.rodeoEvent.location}"></span>
             </p>
@@ -98,9 +110,16 @@
                 <p>Date: <span th:text="${contest.rodeoEvent.eventDate}"></span></p>
             </div>
 
-            <a th:href="@{'/draft/' + ${contest.id}(username=${user != null ? user.username : ''})}" class="btn-draft">
+            <!-- Show active button ONLY if status is UPCOMING -->
+            <a th:if="${contest.rodeoEvent.eventStatus == 'UPCOMING'}"
+               th:href="@{'/draft/' + ${contest.id}(username=${user != null ? user.username : ''})}"
+               class="btn-draft">
                 <span th:text="${enteredContestIds != null and enteredContestIds.contains(contest.id)} ? 'DRAFT ANOTHER TEAM' : 'ENTER DRAFT ROOM'"></span>
             </a>
+            <div th:if="${contest.rodeoEvent.eventStatus != 'UPCOMING'}"
+                 class="btn-draft btn-disabled">
+                ENTRY CLOSED
+            </div>
         </div>
     </div>
 
