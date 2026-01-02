@@ -36,17 +36,7 @@ public class AdminManagementController {
         return "redirect:/admin/manage";
     }
 
-    @GetMapping("/admin/add")
-    public String showAddContestantForm(Model model) {
-        model.addAttribute("contestant", new Contestant());
-        return "admin-add";
-    }
 
-    @PostMapping("/admin/add")
-    public String saveContestant(@ModelAttribute Contestant contestant) {
-        athleteRepo.save(contestant);
-        return "redirect:/admin/manage";
-    }
 
     // --- DASHBOARD & MANAGEMENT ---
     @GetMapping("/dashboard")
