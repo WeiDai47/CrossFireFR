@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Controller
 @RequestMapping("/admin/contest/create/guaranteed")
@@ -24,18 +25,27 @@ public class AdminGuaranteedContestController {
     }
 
     @PostMapping
-    public String process(@RequestParam Long rodeoEventId, @RequestParam String contestName,
-                          @RequestParam BigDecimal entryFee, @RequestParam BigDecimal prizePool,
-                          @RequestParam double curve, @RequestParam double salaryCap,
-                          @RequestParam int maxEntries) {
+    public String process(@RequestParam Long rodeoEventId,
+                          @RequestParam String contestName,
+                          @RequestParam BigDecimal entryFee,
+                          @RequestParam List<BigDecimal> fixedPrizes, // Captured from dynamic inputs
+                          @RequestParam double salaryCap,
+                          @RequestParam int maxEntries,
+    @RequestParam int maxTotal) {
+
 
         FantasyContest contest = new FantasyContest();
         contest.setRodeoEvent(eventRepo.findById(rodeoEventId).orElseThrow());
         contest.setContestName(contestName);
         contest.setEntryFee(entryFee);
-        contest.setPrizePool(prizePool);
         contest.setContestType(FantasyContest.ContestType.GUARANTEED);
-        contest.setPrizeCurveSteepness(curve);
+
+        // Filter out any empty/zero inputs from the admin
+        List<BigDecimal> cleanPrizes = fixedPrizes.stream()
+                .filter(p -> p != null && p.compareTo(BigDecimal.ZERO) > 0)
+                .toList();
+        contest.setFixedPrizeAmounts(cleanPrizes);
+
         contest.setSalaryCap(salaryCap);
         contest.setMaxEntriesPerUser(maxEntries);
         contest.setHouseTakePercentage(0.10);
@@ -43,4 +53,4 @@ public class AdminGuaranteedContestController {
         FantasyContest saved = contestRepo.save(contest);
         return "redirect:/admin/contest/" + saved.getId() + "/setup";
     }
-}
+    }

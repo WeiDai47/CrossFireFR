@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Create Guaranteed Contest | Crossfire Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg-dark: #0f172a; --card-bg: #1e293b; --accent-red: #b11111; --accent-green: #0bea00; --text-light: #f8fafc; --border: #334155; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-light); padding: 40px; }
+    .main-layout { display: grid; grid-template-columns: 1fr 350px; gap: 30px; max-width: 1100px; margin: 0 auto; }
+    .admin-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 30px; }
+    .payout-card { background: #0f172a; border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: sticky; top: 40px; height: fit-content; }
+    h1, h3 { font-family: 'Oswald'; text-transform: uppercase; color: var(--accent-green); margin-top: 0; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+    input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 6px; box-sizing: border-box; }
+    .btn-submit { width: 100%; background: var(--accent-green); color: black; padding: 15px; border: none; border-radius: 6px; font-family: 'Oswald'; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 20px; }
+    .payout-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 6px; }
+    .rank-badge { background: var(--accent-red); color: white; font-family: 'Oswald'; padding: 4px 10px; border-radius: 4px; min-width: 40px; text-align: center; }
+    .btn-add-spot { background: var(--border); color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; font-family: 'Oswald'; font-size: 0.8rem; text-transform: uppercase; margin-top: 10px; }
+  </style>
+</head>
+<body>
+<div class="main-layout">
+  <div class="admin-card">
+    <h1>💎 Create Guaranteed Contest</h1>
+    <form th:action="@{/admin/contest/create/guaranteed}" method="post">
+      <div class="form-group">
+        <label>Select Rodeo Event</label>
+        <select name="rodeoEventId" required>
+          <option th:each="event : ${events}" th:value="${event.id}" th:text="${event.eventName}"></option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Contest Display Name</label>
+        <input type="text" name="contestName" placeholder="e.g. $500 Guaranteed Shootout" required>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Max Entries Per User</label>
+          <input type="number" name="maxEntries" value="1" required>
+        </div>
+        <div class="form-group">
+          <label>Total Entry Limit (Contest Capacity)</label>
+          <input type="number" name="maxTotal" value="10" placeholder="e.g. 10" required>
+        </div>
+      </div>
+
+      <h3>Payout Structure</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-group">
+          <label>Entry Fee ($)</label>
+          <input type="number" name="entryFee" value="25.00" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label>Salary Cap ($)</label>
+          <input type="number" name="salaryCap" value="50000" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Max Entries Per User</label>
+        <input type="number" name="maxEntries" value="1" required>
+      </div>
+
+      <h3>Payout Structure</h3>
+      <div id="payout-container">
+        <div class="payout-row">
+          <div class="rank-badge">1st</div>
+          <input type="number" name="fixedPrizes" step="0.01" placeholder="Prize Amount ($)" oninput="updateTotal()" required>
+        </div>
+      </div>
+      <button type="button" class="btn-add-spot" onclick="addPayoutRow()">+ Add Payout Spot</button>
+
+      <button type="submit" class="btn-submit">Launch Contest</button>
+    </form>
+  </div>
+
+  <div class="payout-card">
+    <h3>Prize Summary</h3>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+      <span>Spots Paid:</span>
+      <span id="spots-count" style="color: var(--accent-green); font-weight: bold;">1</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+      <span>Total Guaranteed:</span>
+      <span id="total-guarantee" style="color: var(--accent-green); font-size: 1.5rem; font-family: 'Oswald'; font-weight: bold;">$0.00</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentRank = 1;
+
+  function addPayoutRow() {
+    currentRank++;
+    const container = document.getElementById('payout-container');
+    const row = document.createElement('div');
+    row.className = 'payout-row';
+
+    const suffix = (currentRank === 2) ? 'nd' : (currentRank === 3) ? 'rd' : 'th';
+
+    row.innerHTML = `
+            <div class="rank-badge">${currentRank}${suffix}</div>
+            <input type="number" name="fixedPrizes" step="0.01" placeholder="Prize Amount ($)" oninput="updateTotal()">
+        `;
+    container.appendChild(row);
+    document.getElementById('spots-count').innerText = currentRank;
+  }
+
+  function updateTotal() {
+    const inputs = document.getElementsByName('fixedPrizes');
+    let total = 0;
+    for(let input of inputs) {
+      total += parseFloat(input.value) || 0;
+    }
+    document.getElementById('total-guarantee').innerText = '$' + total.toLocaleString(undefined, {minimumFractionDigits: 2});
+  }
+</script>
+</body>
+</html>

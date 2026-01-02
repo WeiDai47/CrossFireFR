@@ -49,7 +49,12 @@ public class DraftController {
 
         FantasyContest contest = contestRepo.findById(contestId).orElseThrow();
 
-        // 1. THIS IS THE "USAGE" - Check the entry limit before doing anything else
+        // NEW CHECK: Prevent entry if the contest has reached its total capacity
+        if (contest.getUserEntries().size() >= contest.getMaxTotalEntries()) {
+            return "redirect:/draft/" + contestId + "?username=" + username + "&error=Error: This contest has reached its maximum capacity of " + contest.getMaxTotalEntries() + " entries.";
+        }
+
+        // 1. THIS IS THE "USAGE" - Check the individual entry limit
         long entryCount = userEntryRepo.countByUsernameAndFantasyContestId(username, contestId);
 
         if (entryCount >= contest.getMaxEntriesPerUser()) {
@@ -109,4 +114,5 @@ public class DraftController {
         model.addAttribute("entries", entries);
         return "leaderboard";
     }
+
 }

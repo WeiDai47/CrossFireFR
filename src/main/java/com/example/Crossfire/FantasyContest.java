@@ -24,6 +24,9 @@ public class FantasyContest {
     @Column(name = "max_entries_per_user")
     private int maxEntriesPerUser = 1; // Default to 1 entry per user
 
+    @Column(name = "max_total_entries")
+    private int maxTotalEntries = 99999;
+
     // This property name must match the 'mappedBy' in RodeoEvent
     @ManyToOne
     @JoinColumn(name = "rodeo_event_id")
@@ -54,6 +57,14 @@ public class FantasyContest {
     @OrderColumn
     private List<Double> payoutPercentages; // Index 0 is 1st place, Index 1 is 2nd, etc.
 
+
+    @ElementCollection
+    @CollectionTable(name = "contest_fixed_payouts", joinColumns = @JoinColumn(name = "contest_id"))
+    @Column(name = "prize_amount")
+    @OrderColumn
+    private List<BigDecimal> fixedPrizeAmounts;
+
+
     // Inside FantasyContest.java
 
     public BigDecimal calculateTotalCollected() {
@@ -81,6 +92,11 @@ public class FantasyContest {
 
     public List<BigDecimal> calculateScalingPrizes() {
         int totalEntries = (userEntries != null) ? userEntries.size() : 0;
+        if (this.contestType == ContestType.GUARANTEED && fixedPrizeAmounts != null && !fixedPrizeAmounts.isEmpty()) {
+            return fixedPrizeAmounts;
+        }
+
+
         if (totalEntries == 0) return new ArrayList<>();
 
         // 1. Determine spots to pay (e.g., top 25% of the field)
@@ -125,6 +141,10 @@ public class FantasyContest {
      * The "Smart" prize pool display logic.
      */
     public BigDecimal getDisplayPrizePool() {
+        // If Manual Prizes are set, show their sum
+        if (this.contestType == ContestType.GUARANTEED && fixedPrizeAmounts != null && !fixedPrizeAmounts.isEmpty()) {
+            return fixedPrizeAmounts.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
         // 1. Calculate the dynamic pool based on current entries
         int actualEntries = (userEntries != null) ? userEntries.size() : 0;
         BigDecimal totalCollected = entryFee.multiply(BigDecimal.valueOf(actualEntries));
@@ -138,4 +158,8 @@ public class FantasyContest {
 
         return dynamicAmount;
     }
+
+
+
+
 }
