@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Select Contest Type | Crossfire Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #0f172a; --card-bg: #1e293b; --accent-red: #b11111; --accent-green: #0bea00; --border: #334155; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: white; padding: 40px; }
+        .container { max-width: 900px; margin: 0 auto; text-align: center; }
+        h1 { font-family: 'Oswald'; text-transform: uppercase; font-size: 2.5rem; margin-bottom: 40px; }
+        .type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .type-card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; border-radius: 12px; text-decoration: none; color: white; transition: all 0.2s; }
+        .type-card:hover { transform: translateY(-5px); border-color: var(--accent-green); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .icon { font-size: 2.5rem; margin-bottom: 15px; display: block; }
+        .title { font-family: 'Oswald'; font-size: 1.5rem; display: block; text-transform: uppercase; color: var(--accent-green); }
+        .desc { color: #94a3b8; font-size: 0.9rem; margin-top: 10px; display: block; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Select Contest Template</h1>
+    <div class="type-grid">
+        <a href="/admin/contest/create/dynamic?isFree=true" class="type-card">
+            <span class="icon">🎁</span>
+            <span class="title">Free Contest</span>
+            <span class="desc">No entry fee. Great for marketing and new user acquisition.</span>
+        </a>
+        <a href="/admin/contest/create/dynamic" class="type-card">
+            <span class="icon">📈</span>
+            <span class="title">Dynamic Pool</span>
+            <span class="desc">The prize pool grows as more entries join (Standard logic).</span>
+        </a>
+        <a href="/admin/contest/create/guaranteed" class="type-card">
+            <span class="icon">💎</span>
+            <span class="title">Guaranteed</span>
+            <span class="desc">Fixed minimum prize pool regardless of entry count.</span>
+        </a>
+        <a href="/admin/contest/create/double-up" class="type-card">
+            <span class="icon">🌓</span>
+            <span class="title">50/50 - Double Up</span>
+            <span class="desc">Top half of the field doubles their money. Flat payouts.</span>
+        </a>
+    </div>
+    <a href="/admin/dashboard" style="display: block; margin-top: 40px; color: #94a3b8; text-decoration: none;">← Back to Dashboard</a>
+</div>
+</body>
+</html>

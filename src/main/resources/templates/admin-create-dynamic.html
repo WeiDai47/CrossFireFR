@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Create Dynamic Contest | Crossfire Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #0f172a; --card-bg: #1e293b; --accent-red: #b11111; --accent-green: #0bea00; --text-light: #f8fafc; --border: #334155; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-light); padding: 40px; }
+        .main-layout { display: grid; grid-template-columns: 1fr 350px; gap: 30px; max-width: 1100px; margin: 0 auto; }
+        .admin-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 30px; }
+        .preview-card { background: #0f172a; border: 1px solid var(--accent-green); border-radius: 12px; padding: 20px; position: sticky; top: 40px; height: fit-content; }
+        h1, h3 { font-family: 'Oswald'; text-transform: uppercase; color: var(--accent-green); margin-top: 0; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 6px; box-sizing: border-box; }
+        .btn-submit { width: 100%; background: var(--accent-green); color: black; padding: 15px; border: none; border-radius: 6px; font-family: 'Oswald'; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; }
+        .payout-list { margin-top: 15px; max-height: 300px; overflow-y: auto; border-top: 1px solid var(--border); padding-top: 15px; }
+        .payout-item { display: flex; justify-content: space-between; padding: 4px 0; font-family: monospace; }
+        input[type="range"] { accent-color: var(--accent-green); cursor: pointer; width: 100%; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    </style>
+</head>
+<body>
+<div class="main-layout">
+    <div class="admin-card">
+        <h1>Launch Dynamic Contest</h1>
+        <form th:action="@{/admin/contest/create/dynamic}" method="post">
+            <div class="form-group">
+                <label>Select Rodeo Event</label>
+                <select name="rodeoEventId" required>
+                    <option th:each="event : ${events}" th:value="${event.id}" th:text="${event.eventName}"></option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Contest Display Name</label>
+                <input type="text" name="contestName" th:value="${isFree ? 'Free Roll - ' : ''}" placeholder="e.g. $10k NFR Shootout" required>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Entry Fee ($)</label>
+                    <input type="number" id="entryFee" name="entryFee" th:value="${isFree ? '0.00' : '20.00'}" th:readonly="${isFree}" step="0.01" oninput="updatePreview()" required>
+                </div>
+                <div class="form-group">
+                    <label>Curve Steepness</label>
+                    <input type="number" id="curveSteepness" name="curve" step="0.1" value="1.5" oninput="updatePreview()" required>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Salary Cap ($)</label>
+                    <input type="number" name="salaryCap" value="50000" required>
+                </div>
+                <div class="form-group">
+                    <label>Max Entries Per User</label>
+                    <input type="number" name="maxEntries" value="1" required>
+                </div>
+            </div>
+
+            <div class="form-group" style="background: #162030; padding: 20px; border-radius: 8px; border: 1px dashed var(--accent-green); margin-top: 10px;">
+                <label style="color: var(--accent-green); font-weight: bold;">Live Simulator: Total Entries</label>
+                <input type="range" id="simEntries" min="1" max="5000" value="100" oninput="updatePreview()">
+                <div style="text-align: center; font-family: 'Oswald'; font-size: 1.2rem; margin-top: 10px;">
+                    <span id="entryCountLabel" style="color: var(--accent-green);">100</span> ENTRIES
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Launch Contest</button>
+        </form>
+    </div>
+
+    <div class="preview-card">
+        <h3>Prize Simulator</h3>
+        <div class="stat-row">
+            <span>Total Revenue:</span>
+            <span id="prevTotal" style="color: white;">$0.00</span>
+        </div>
+        <div class="stat-row">
+            <span>House Cut (10%):</span>
+            <span id="prevHouse" style="color: var(--accent-red);">$0.00</span>
+        </div>
+        <div class="stat-row" style="border-top: 1px solid var(--border); padding-top: 10px; font-weight: bold; margin-top: 10px;">
+            <span>Net Prize Pool:</span>
+            <span id="prevNet" style="color: var(--accent-green); font-size: 1.1rem;">$0.00</span>
+        </div>
+
+        <div style="margin-top: 20px; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">Ranked Payouts (Top 25%)</div>
+        <div class="payout-list" id="payoutList"></div>
+    </div>
+</div>
+
+<script>
+    function updatePreview() {
+        const entryFee = parseFloat(document.getElementById('entryFee').value) || 0;
+        const numEntries = parseInt(document.getElementById('simEntries').value);
+        const curve = parseFloat(document.getElementById('curveSteepness').value) || 1.5;
+
+        document.getElementById('entryCountLabel').innerText = numEntries.toLocaleString();
+
+        const totalCollected = entryFee * numEntries;
+        const houseCut = totalCollected * 0.10;
+        const netPool = totalCollected - houseCut;
+        const spotsToPay = Math.max(1, Math.ceil(numEntries * 0.25));
+
+        document.getElementById('prevTotal').innerText = '$' + totalCollected.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('prevHouse').innerText = '-$' + houseCut.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('prevNet').innerText = '$' + netPool.toLocaleString(undefined, {minimumFractionDigits: 2});
+
+        let totalWeight = 0;
+        for (let i = 1; i <= spotsToPay; i++) {
+            totalWeight += 1.0 / Math.pow(i, curve);
+        }
+
+        let html = '';
+        const showLimit = Math.min(spotsToPay, 15);
+        for (let i = 1; i <= showLimit; i++) {
+            const weight = 1.0 / Math.pow(i, curve);
+            const prize = netPool * (weight / totalWeight);
+            html += `<div class="payout-item"><span style="color: #94a3b8">Rank ${i}:</span><span style="color:var(--accent-green); font-weight: bold;">$${prize.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>`;
+        }
+        document.getElementById('payoutList').innerHTML = html;
+    }
+    updatePreview();
+</script>
+</body>
+</html>

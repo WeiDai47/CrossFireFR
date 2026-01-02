@@ -68,42 +68,6 @@ public class AdminManagementController {
         return "redirect:/admin/dashboard";
     }
 
-    // --- CONTEST CREATION (Merged with Guaranteed/Dynamic Logic) ---
-    @GetMapping("/contest/create")
-    public String showCreateContestForm(Model model) {
-        model.addAttribute("events", eventRepo.findAll());
-        return "admin-create-fantasycontest";
-    }
-
-    @PostMapping("/contest/create")
-    public String processCreateContest(@RequestParam Long rodeoEventId,
-                                       @RequestParam String contestName,
-                                       @RequestParam BigDecimal entryFee,
-                                       @RequestParam(required = false) BigDecimal prizePool,
-                                       @RequestParam String contestType,
-                                       @RequestParam double prizeCurveSteepness,
-                                       @RequestParam double salaryCap,
-                                       @RequestParam int maxEntriesPerUser) {
-
-        FantasyContest contest = new FantasyContest();
-        contest.setRodeoEvent(eventRepo.findById(rodeoEventId).orElseThrow());
-        contest.setContestName(contestName);
-        contest.setEntryFee(entryFee);
-
-        // Logic for Guaranteed vs Dynamic
-        contest.setContestType(FantasyContest.ContestType.valueOf(contestType));
-        if (prizePool != null) {
-            contest.setPrizePool(prizePool); // This is your "Guaranteed" floor
-        }
-
-        contest.setPrizeCurveSteepness(prizeCurveSteepness);
-        contest.setSalaryCap(salaryCap);
-        contest.setMaxEntriesPerUser(maxEntriesPerUser);
-        contest.setHouseTakePercentage(0.10);
-
-        FantasyContest savedContest = contestRepo.save(contest);
-        return "redirect:/admin/contest/" + savedContest.getId() + "/setup";
-    }
 
     // --- ROSTER SETUP ---
     @GetMapping("/contest/{id}/setup")
