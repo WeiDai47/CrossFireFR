@@ -9,10 +9,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Controller
-@RequestMapping("/admin/contest/create/double-up")
-public class AdminDoubleUpContestController {
+@RequestMapping("/admin/contest/create/free")
+public class AdminFreeContestController {
 
     @Autowired private RodeoEventRepository eventRepo;
     @Autowired private FantasyContestRepository contestRepo;
@@ -20,27 +21,28 @@ public class AdminDoubleUpContestController {
     @GetMapping
     public String showForm(Model model) {
         model.addAttribute("events", eventRepo.findAll());
-        return "admin-create-doubleup";
+        return "admin-create-free";
     }
 
     @PostMapping
     public String process(@RequestParam Long rodeoEventId, @RequestParam String contestName,
-                          @RequestParam BigDecimal entryFee, @RequestParam double salaryCap,
-                          @RequestParam int maxEntries,
+                          @RequestParam(required = false) List<String> itemPrizes,
+                          @RequestParam double salaryCap, @RequestParam int maxEntries,
                           @RequestParam("maxTotal") int maxTotalEntries) {
 
         FantasyContest contest = new FantasyContest();
         contest.setRodeoEvent(eventRepo.findById(rodeoEventId).orElseThrow());
         contest.setContestName(contestName);
-        contest.setEntryFee(entryFee);
+        contest.setEntryFee(BigDecimal.ZERO); // Always Free
+        contest.setContestType(FantasyContest.ContestType.GUARANTEED); // Uses GTD logic for prizes
 
-        // Use the explicit DOUBLE_UP type we added to the Enum
-        contest.setContestType(FantasyContest.ContestType.DOUBLE_UP);
+        if (itemPrizes != null) {
+            contest.setItemPrizeNames(itemPrizes.stream().filter(s -> !s.isBlank()).toList());
+        }
 
         contest.setSalaryCap(salaryCap);
         contest.setMaxEntriesPerUser(maxEntries);
         contest.setMaxTotalEntries(maxTotalEntries);
-        contest.setHouseTakePercentage(0.10);
 
         FantasyContest saved = contestRepo.save(contest);
         return "redirect:/admin/contest/" + saved.getId() + "/setup";

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Create Double Up | Crossfire Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg-dark: #0f172a; --card-bg: #1e293b; --accent-red: #b11111; --accent-green: #0bea00; --text-light: #f8fafc; --border: #334155; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-light); padding: 40px; }
+    .admin-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 40px; max-width: 600px; margin: 0 auto; }
+    h1 { font-family: 'Oswald'; text-transform: uppercase; color: var(--accent-green); text-align: center; margin-bottom: 30px; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+    input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 6px; box-sizing: border-box; }
+    .btn-submit { width: 100%; background: var(--accent-green); color: black; padding: 15px; border: none; border-radius: 6px; font-family: 'Oswald'; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .logic-box { background: rgba(11, 234, 0, 0.05); border: 1px dashed var(--accent-green); padding: 15px; border-radius: 6px; margin-bottom: 20px; text-align: center; }
+  </style>
+</head>
+<body>
+<div class="admin-card">
+  <h1>🌓 Create 50/50 Double Up</h1>
+
+  <div class="logic-box">
+    <p style="margin: 0; font-size: 0.9rem; color: var(--accent-green); font-weight: 600;">
+      Top 50% of the field wins double their entry fee (minus 10% house take).
+    </p>
+  </div>
+
+  <form th:action="@{/admin/contest/create/double-up}" method="post">
+    <div class="form-group">
+      <label>Select Rodeo Event</label>
+      <select name="rodeoEventId" required>
+        <option th:each="event : ${events}" th:value="${event.id}" th:text="${event.eventName}"></option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Contest Display Name</label>
+      <input type="text" name="contestName" value="50/50 Double Up" placeholder="e.g. $20 Double Up" required>
+    </div>
+
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Entry Fee ($)</label>
+        <input type="number" name="entryFee" value="20.00" step="0.01" required>
+      </div>
+      <div class="form-group">
+        <label>Salary Cap ($)</label>
+        <input type="number" name="salaryCap" value="50000" required>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Max Entries Per User</label>
+        <input type="number" name="maxEntries" value="1" required>
+      </div>
+      <div class="form-group">
+        <label>Total Entry Limit (Capacity)</label>
+        <input type="number" name="maxTotal" value="100" placeholder="e.g. 10" required>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit">Launch Double Up</button>
+
+    <div style="text-align: center; margin-top: 20px;">
+      <a href="/admin/contest/create/select" style="color: #94a3b8; text-decoration: none; font-size: 0.8rem;">← Back to templates</a>
+    </div>
+  </form>
+</div>
+</body>
+</html>

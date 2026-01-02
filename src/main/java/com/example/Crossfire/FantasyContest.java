@@ -64,6 +64,13 @@ public class FantasyContest {
     @OrderColumn
     private List<BigDecimal> fixedPrizeAmounts;
 
+    @ElementCollection
+    @CollectionTable(name = "contest_item_prizes", joinColumns = @JoinColumn(name = "contest_id"))
+    @Column(name = "item_name")
+    @OrderColumn
+    private List<String> itemPrizeNames;
+
+
 
     // Inside FantasyContest.java
 
@@ -92,6 +99,8 @@ public class FantasyContest {
 
     public List<BigDecimal> calculateScalingPrizes() {
         int totalEntries = (userEntries != null) ? userEntries.size() : 0;
+
+        // 1. PRIORITY: Manual Payouts (Guaranteed Template)
         if (this.contestType == ContestType.GUARANTEED && fixedPrizeAmounts != null && !fixedPrizeAmounts.isEmpty()) {
             return fixedPrizeAmounts;
         }
@@ -99,7 +108,24 @@ public class FantasyContest {
 
         if (totalEntries == 0) return new ArrayList<>();
 
-        // 1. Determine spots to pay (e.g., top 25% of the field)
+        // 2. SPECIAL CASE: 50/50 Double Up
+        // Logic: Pay top 50% a flat amount (Entry Fee * 2 * 0.90)
+        if (this.contestType == ContestType.DOUBLE_UP || this.prizeCurveSteepness == 0.0) {
+            int winners = Math.max(1, totalEntries / 2);
+
+            // Calculate: (EntryFee * 2) minus 10% House Cut
+            BigDecimal prizePerWinner = entryFee.multiply(BigDecimal.valueOf(2))
+                    .multiply(BigDecimal.valueOf(1.0 - houseTakePercentage))
+                    .setScale(2, RoundingMode.HALF_UP);
+
+            List<BigDecimal> prizes = new ArrayList<>();
+            for (int i = 0; i < winners; i++) {
+                prizes.add(prizePerWinner);
+            }
+            return prizes;
+        }
+
+        // 3. STANDARD CASE: Dynamic/Free (25% Field Reach + Mathematical Curve)
         int spotsToPay = (int) Math.max(1, Math.ceil(totalEntries * 0.25));
 
         // 2. Calculate the Net Prize Pool (Total Fees - 10% House)
@@ -132,7 +158,8 @@ public class FantasyContest {
     // Inside FantasyContest.java
 
     public enum ContestType {
-        GUARANTEED, DYNAMIC
+        GUARANTEED, DYNAMIC, DOUBLE_UP
+
     }
 
     private ContestType contestType = ContestType.DYNAMIC; // Default to dynamic

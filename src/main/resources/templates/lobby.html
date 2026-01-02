@@ -71,7 +71,7 @@
     </nav>
 
     <div class="utility-box search-container">
-        <h2 style="font-family: 'Oswald'; margin-top: 0; text-transform: uppercase;">This Website is just a prototype do not put any personal information or think the money in the wallet is real</h2>
+        <h2 style="font-family: 'Oswald'; margin-top: 0; text-transform: uppercase;">This Website is just a prototype do not put any personal information or think any money or prizes are real</h2>
         <form th:action="@{/my-teams}" method="get" class="form-row">
 
         </form>
@@ -82,8 +82,12 @@
     <div class="contest-grid">
         <div th:each="contest : ${contests}" class="contest-card">
 
-            <div th:class="${contest.contestType.name() == 'GUARANTEED' ? 'prize-badge badge-guaranteed' : 'prize-badge badge-dynamic'}"
-                 th:text="${contest.contestType.name() == 'GUARANTEED' ? 'Guaranteed Prize Pool' : 'Dynamic Scaling Pool'}">
+            <div th:if="${contest.entryFee == 0}" class="prize-badge badge-free">🎁 Free Roll Giveaway</div>
+
+            <div th:if="${contest.entryFee > 0}">
+                <div th:if="${contest.contestType.name() == 'GUARANTEED'}" class="prize-badge badge-guaranteed">💎 Guaranteed Prize Pool</div>
+                <div th:if="${contest.contestType.name() == 'DYNAMIC'}" class="prize-badge badge-dynamic">📈 Dynamic Scaling Pool</div>
+                <div th:if="${contest.contestType.name() == 'DOUBLE_UP'}" class="prize-badge badge-double">🌓 50/50 Double Up</div>
             </div>
 
             <div class="entry-fee-badge" th:text="${contest.entryFee == 0} ? 'FREE' : '$' + ${contest.entryFee}"></div>
@@ -111,14 +115,45 @@
             </div>
 
             <!-- Show active button ONLY if status is UPCOMING -->
-            <a th:if="${contest.rodeoEvent.eventStatus == 'UPCOMING'}"
-               th:href="@{'/draft/' + ${contest.id}(username=${user != null ? user.username : ''})}"
+            <div th:if="${user == null}" style="margin-top: 20px;">
+            <a href="/login" class="btn-draft" style="background: var(--accent-red); color: white;">LOGIN TO DRAFT</a>
+        </div>
+
+        <!-- Case 2: User IS logged in -->
+        <div th:if="${user != null}" style="margin-top: 20px;">
+            <!-- Sub-Case: Event is LIVE (Open for drafting) -->
+            <a th:if="${contest.rodeoEvent.eventStatus == 'LIVE'}"
+               th:href="@{'/draft/' + ${contest.id}(username=${user.username})}"
                class="btn-draft">
                 <span th:text="${enteredContestIds != null and enteredContestIds.contains(contest.id)} ? 'DRAFT ANOTHER TEAM' : 'ENTER DRAFT ROOM'"></span>
             </a>
-            <div th:if="${contest.rodeoEvent.eventStatus != 'UPCOMING'}"
+
+            <!-- Sub-Case: Event is UPCOMING or ENDED (Locked) -->
+            <div th:if="${contest.rodeoEvent.eventStatus != 'LIVE'}"
                  class="btn-draft btn-disabled">
-                ENTRY CLOSED
+                <span th:text="${contest.rodeoEvent.eventStatus == 'UPCOMING'} ? 'DRAFTING SOON' : 'ENTRY CLOSED'"></span>
+            </div>
+        </div>
+        </div>
+    </div>
+    <div class="rules-section">
+        <h2 style="font-family: 'Oswald'; text-transform: uppercase; margin-top: 0;">Contest Official Rules</h2>
+        <div class="rules-grid">
+            <div class="rule-card">
+                <h4>💎 Guaranteed</h4>
+                <p>Payouts are fixed by the admin. The prize pool is guaranteed even if the contest doesn't fill up. Ideal for high-stakes games.</p>
+            </div>
+            <div class="rule-card">
+                <h4>📈 Dynamic</h4>
+                <p>The prize pool scales with every entry. 90% of all entry fees go to the winners, distributed via a weighted performance curve.</p>
+            </div>
+            <div class="rule-card">
+                <h4>🎁 Free Roll</h4>
+                <p>Zero entry fee required. Winners receive specific items like pickup trucks or gear instead of wallet balance. Great for practice!</p>
+            </div>
+            <div class="rule-card">
+                <h4>🌓 50/50 Double</h4>
+                <p>The simplest way to play. Finish in the top half of the leaderboard and nearly double your money. Flat payouts for all winners.</p>
             </div>
         </div>
     </div>
