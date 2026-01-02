@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Event Status | Crossfire Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #0f172a; --card-bg: #1e293b; --accent-red: #b11111; --accent-green: #0bea00; --border: #334155; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: white; padding: 20px; }
+        .admin-container { max-width: 1000px; margin: 0 auto; background: var(--card-bg); padding: 25px; border-radius: 12px; border: 1px solid var(--border); }
+
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--accent-red); }
+        h1 { font-family: 'Oswald'; text-transform: uppercase; margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; padding: 12px; border-bottom: 1px solid var(--border); }
+        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        .status-badge { font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        .status-LIVE { background: var(--accent-red); color: white; }
+        .status-UPCOMING { background: #334155; color: #94a3b8; }
+        .status-ENDED { background: #000; color: #64748b; }
+
+        select { background: #0f172a; border: 1px solid var(--border); color: white; padding: 6px; border-radius: 4px; font-family: 'Inter'; font-size: 0.85rem; }
+
+        .btn-update { background: var(--accent-green); color: black; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Oswald'; font-size: 0.75rem; font-weight: bold; transition: transform 0.1s; }
+        .btn-update:hover { transform: scale(1.05); }
+
+        .back-link { color: #94a3b8; text-decoration: none; font-size: 0.8rem; display: block; margin-top: 25px; text-align: center; }
+        .back-link:hover { color: white; }
+
+        .alert-success { background: rgba(11, 234, 0, 0.1); border: 1px solid var(--accent-green); color: var(--accent-green); padding: 10px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <div class="header-row">
+        <h1>Rodeo Event Management</h1>
+        <div style="font-size: 0.8rem; color: #94a3b8; font-family: 'Oswald';">STATUS CONTROL PANEL</div>
+    </div>
+
+    <div th:if="${param.success}" class="alert-success">
+        ✓ Event status updated successfully.
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Event Name</th>
+            <th>Date / Location</th>
+            <th>Current Status</th>
+            <th>Change Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="event : ${events}">
+            <td th:text="${event.id}" style="color: #64748b; font-family: 'Oswald';"></td>
+            <td>
+                <div th:text="${event.eventName}" style="font-weight: 600; color: var(--accent-green);"></div>
+            </td>
+            <td>
+                <div th:text="${event.eventDate}" style="font-size: 0.85rem;"></div>
+                <div th:text="${event.location}" style="font-size: 0.75rem; color: #94a3b8;"></div>
+            </td>
+            <td>
+                <span th:text="${event.eventStatus}"
+                      th:class="'status-badge status-' + ${event.eventStatus}">
+                </span>
+            </td>
+            <td>
+                <form th:action="@{/admin/event-status/update}" method="post" style="display: flex; gap: 8px; align-items: center;">
+                    <input type="hidden" name="eventId" th:value="${event.id}"/>
+                    <select name="status">
+                        <option value="UPCOMING" th:selected="${event.eventStatus == 'UPCOMING'}">UPCOMING</option>
+                        <option value="LIVE" th:selected="${event.eventStatus == 'LIVE'}">LIVE</option>
+                        <option value="ENDED" th:selected="${event.eventStatus == 'ENDED'}">ENDED</option>
+                    </select>
+                    <button type="submit" class="btn-update">APPLY</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <a href="/admin/dashboard" class="back-link">← Return to Admin Control Center</a>
+</div>
+
+</body>
+</html>
