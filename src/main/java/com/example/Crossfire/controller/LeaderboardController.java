@@ -58,7 +58,8 @@ public class LeaderboardController {
             int scoreCompare = Double.compare(b.getLiveScore(), a.getLiveScore());
             return (scoreCompare != 0) ? scoreCompare : a.getUsername().compareToIgnoreCase(b.getUsername());
         });
-
+        model.addAttribute("livePrizes", contest.calculateScalingPrizes());
+        model.addAttribute("itemPrizes", contest.getItemPrizeNames());
         model.addAttribute("contest", contest);
         model.addAttribute("rodeoName", contest.getRodeoEvent().getEventName());
         model.addAttribute("entries", entries);
@@ -107,5 +108,6 @@ public class LeaderboardController {
         model.addAttribute("searchedUsername", username);
         return "my-teams";
     }
+
 
 }

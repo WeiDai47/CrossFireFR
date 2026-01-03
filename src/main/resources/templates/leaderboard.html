@@ -13,6 +13,13 @@
         .username-click { cursor: pointer; color: #cbd5e1; text-decoration: underline dotted; }
         .username-click:hover { color: #0bea00; }
 
+
+
+        /* New Prize Style */
+        .prize-text { font-family: 'Oswald', sans-serif; font-weight: bold; }
+        .prize-cash { color: #0bea00; }
+        .prize-item { color: #6366f1; }
+
         /* The dropdown styles */
         .team-details { display: none; padding: 10px 15px; background: #0f172a; font-size: 0.7rem; color: #94a3b8; border-top: 1px solid #334155; }
         .athlete-mini { display: inline-block; margin-right: 15px; }
@@ -29,6 +36,7 @@
         <th>Rank</th>
         <th>User</th>
         <th>Total Score</th>
+        <th style="color: var(--accent-green);">Projected Winnings</th>
     </tr>
     </thead>
     <tbody>
@@ -40,21 +48,24 @@
                           th:onclick="'toggleTeam(' + ${entry.id} + ')'">Username</span>
             </td>
             <td th:text="${entry.liveScore}">0.0</td>
-        </tr>
-        <!-- The Hidden Dropdown Row -->
-        <tr th:id="'details-' + ${entry.id}" class="team-details">
-            <td colspan="3">
-                <div style="display: flex; flex-wrap: wrap;">
-                    <div th:each="selection : ${entry.selections}" class="athlete-mini">
-                        <span th:text="${selection.contestSetup.categoryName}">Category</span>:
-                        <strong th:text="${selection.contestant.name}">Name</strong>
-                        (<span th:text="${scoreMap.get(selection.contestant.id) ?: '0.0'}">0</span>)
-                    </div>
-                </div>
+            <td>
+                <!-- 1. Check for Physical Items (Free Rolls) -->
+                <span th:if="${itemPrizes != null and iter.index < itemPrizes.size()}"
+                      class="prize-text prize-item" th:text="${itemPrizes[iter.index]}"></span>
+
+                <!-- 2. Check for Cash (Dynamic, GTD, 50/50) -->
+                <span th:if="${(itemPrizes == null or itemPrizes.isEmpty()) and livePrizes != null and iter.index < livePrizes.size()}"
+                      class="prize-text prize-cash"
+                      th:text="'$' + ${#numbers.formatDecimal(livePrizes[iter.index], 1, 'COMMA', 2, 'POINT')}"></span>
+
+                <!-- 3. No prize for this rank -->
+                <span th:if="${(itemPrizes == null or iter.index >= itemPrizes.size()) and (livePrizes == null or iter.index >= livePrizes.size())}"
+                      style="color: #475569; font-size: 0.8rem;">--</span>
             </td>
         </tr>
     </th:block>
     </tbody>
+
 </table>
 
 <script>

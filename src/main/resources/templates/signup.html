@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Sign Up | Crossfire Rodeo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg-dark: #0f172a; --card-bg: #1e293b; --accent-red: #b11111; --accent-green: #0bea00; --border: #334155; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+    .signup-card { background: var(--card-bg); padding: 40px; border-radius: 12px; border: 1px solid var(--border); width: 100%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+    h1 { font-family: 'Oswald'; color: var(--accent-red); text-transform: uppercase; margin-bottom: 10px; text-align: center; }
+    .prototype-warning { background: rgba(177, 17, 17, 0.15); border: 1px solid var(--accent-red); color: #ff9999; padding: 15px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 25px; text-align: center; line-height: 1.4; }
+    label { display: block; text-align: left; font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; }
+    input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; background: var(--bg-dark); border: 1px solid var(--border); color: white; border-radius: 6px; box-sizing: border-box; font-family: 'Inter'; }
+    input:focus, textarea:focus { border-color: var(--accent-green); outline: none; }
+    .btn-signup { width: 100%; padding: 14px; background: var(--accent-green); border: none; font-family: 'Oswald'; font-weight: bold; cursor: pointer; border-radius: 6px; text-transform: uppercase; color: black; font-size: 1.1rem; margin-top: 10px; }
+    .error-msg { color: #ff4444; font-size: 0.85rem; margin-bottom: 20px; background: rgba(255, 68, 68, 0.1); padding: 10px; border-radius: 4px; border: 1px solid #ff4444; text-align: center; }
+    .footer-link { margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border); text-align: center; color: #94a3b8; font-size: 0.9rem; }
+    .footer-link a { color: var(--accent-green); text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+<div class="signup-card">
+  <h1>Create Account</h1>
+
+  <div class="prototype-warning">
+    <strong>PROTOTYPE WARNING:</strong> This is a test website. Do <u>not</u> enter your actual personal information. Please use fake/made-up data for all fields.
+  </div>
+
+  <div th:if="${error}" class="error-msg" th:text="${error}"></div>
+
+  <form th:action="@{/signup}" th:object="${user}" method="post">
+    <label>Username</label>
+    <input type="text" th:field="*{username}" placeholder="e.g. RodeoKing" required>
+
+    <label>Email Address</label>
+    <input type="email" th:field="*{email}" placeholder="fake@email.com" required>
+
+    <label>Phone Number</label>
+    <input type="text" th:field="*{phoneNumber}" placeholder="555-0123">
+
+    <label>Mailing Address</label>
+    <textarea th:field="*{address}" rows="2" placeholder="123 Fake St, Rodeo City"></textarea>
+
+    <label>Password</label>
+    <input type="password" th:field="*{password}" placeholder="••••••••" required>
+
+    <button type="submit" class="btn-signup">Join Crossfire</button>
+  </form>
+
+  <div class="footer-link">
+    Already have an account? <a th:href="@{/login}">Sign In</a>
+  </div>
+</div>
+</body>
+</html>
