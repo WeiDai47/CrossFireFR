@@ -122,16 +122,16 @@
         <!-- Case 2: User IS logged in -->
         <div th:if="${user != null}" style="margin-top: 20px;">
             <!-- Sub-Case: Event is LIVE (Open for drafting) -->
-            <a th:if="${contest.rodeoEvent.eventStatus == 'LIVE'}"
+            <a th:if="${contest.rodeoEvent.eventStatus == 'UPCOMING'}"
                th:href="@{'/draft/' + ${contest.id}(username=${user.username})}"
                class="btn-draft">
                 <span th:text="${enteredContestIds != null and enteredContestIds.contains(contest.id)} ? 'DRAFT ANOTHER TEAM' : 'ENTER DRAFT ROOM'"></span>
             </a>
 
             <!-- Sub-Case: Event is UPCOMING or ENDED (Locked) -->
-            <div th:if="${contest.rodeoEvent.eventStatus != 'LIVE'}"
-                 class="btn-draft btn-disabled">
-                <span th:text="${contest.rodeoEvent.eventStatus == 'UPCOMING'} ? 'DRAFTING SOON' : 'ENTRY CLOSED'"></span>
+            <div th:if="${contest.rodeoEvent.eventStatus != 'UPCOMING'}"
+                 class="btn-draft btn-disabled" style="background: #334155; color: #94a3b8; cursor: not-allowed;">
+                <span th:text="${contest.rodeoEvent.eventStatus == 'LIVE'} ? 'EVENT IN PROGRESS (LOCKED)' : 'ENTRY CLOSED'"></span>
             </div>
         </div>
         </div>
