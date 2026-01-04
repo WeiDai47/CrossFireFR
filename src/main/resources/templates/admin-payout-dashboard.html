@@ -29,6 +29,7 @@
         <tr>
             <th>Contest Name</th>
             <th>Type</th>
+            <th>Event Status</th>
             <th>Entries</th>
             <th>Est. Prize Pool</th>
             <th>Action</th>
@@ -40,6 +41,11 @@
             <td>
                 <span th:class="'badge badge-' + ${contest.contestType.name().toLowerCase()}"
                       th:text="${contest.contestType}">Type</span>
+            </td>
+            <td>
+                <span th:if="${contest.rodeoEvent.eventStatus == 'LIVE'}" class="status-tag live">● LIVE</span>
+                <span th:if="${contest.rodeoEvent.eventStatus == 'UPCOMING'}" class="status-tag upcoming">UPCOMING</span>
+                <span th:if="${contest.rodeoEvent.eventStatus == 'ENDED'}" class="status-tag ended">ENDED</span>
             </td>
             <td th:text="${contest.userEntries.size()}">0</td>
             <td th:text="'$' + ${contest.getDisplayPrizePool()}">$0.00</td>
