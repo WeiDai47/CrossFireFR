@@ -53,14 +53,14 @@
             <span style="color: #94a3b8;">Welcome, <strong th:text="${user.username}" style="color: white;"></strong></span>
 
             <!-- CHANGE: Wrap the wallet div in an anchor tag linking to /deposit -->
-            <a th:href="@{/account/deposit(username=${user.username})}" style="text-decoration: none;">
+            <a th:href="@{/account/deposit(username=${user?.username})}" style="text-decoration: none;">
                 <div style="background: rgba(11, 234, 0, 0.1); border: 1px solid var(--accent-green); padding: 5px 15px; border-radius: 20px; color: var(--accent-green); font-family: 'Oswald'; cursor: pointer;">
-                    WALLET: $<span th:text="${#numbers.formatDecimal(user.balance, 1, 'COMMA', 2, 'POINT')}"></span>
+                    WALLET: $<span th:text="${user?.balance != null ? #numbers.formatDecimal(user.balance, 1, 'COMMA', 2, 'POINT') : '0.00'}">0.00</span>
                     <span style="margin-left: 5px; font-size: 0.8rem;">[+]</span>
                 </div>
             </a>
 
-            <a th:href="@{/my-teams(username=${user.username})}" class="nav-link-item">My Teams</a>
+            <a th:href="@{/my-teams(username=${user?.username})}" class="nav-link-item">My Teams</a>
 
             <a href="/login" style="color: var(--accent-red); text-decoration: none; font-size: 0.8rem; margin-left: 10px; font-weight: bold;">LOGOUT</a>
         </div>
@@ -120,13 +120,13 @@
         </div>
 
         <!-- Case 2: User IS logged in -->
-        <div th:if="${user != null}" style="margin-top: 20px;">
-            <!-- Sub-Case: Event is LIVE (Open for drafting) -->
-            <a th:if="${contest.rodeoEvent.eventStatus == 'UPCOMING'}"
-               th:href="@{'/draft/' + ${contest.id}(username=${user.username})}"
-               class="btn-draft">
-                <span th:text="${enteredContestIds != null and enteredContestIds.contains(contest.id)} ? 'DRAFT ANOTHER TEAM' : 'ENTER DRAFT ROOM'"></span>
-            </a>
+            <div th:if="${user != null}" style="margin-top: 20px;">
+                <!-- Sub-Case: Event is LIVE (Open for drafting) -->
+                <a th:if="${contest.rodeoEvent.eventStatus == 'UPCOMING'}"
+                   th:href="@{'/draft/' + ${contest.id}(username=${user?.username})}"
+                   class="btn-draft">
+                    <span th:text="${enteredContestIds != null and enteredContestIds.contains(contest.id)} ? 'DRAFT ANOTHER TEAM' : 'ENTER DRAFT ROOM'"></span>
+                </a>
 
             <!-- Sub-Case: Event is UPCOMING or ENDED (Locked) -->
             <div th:if="${contest.rodeoEvent.eventStatus != 'UPCOMING'}"

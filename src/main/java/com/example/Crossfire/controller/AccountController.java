@@ -2,6 +2,7 @@ package com.example.Crossfire.controller;
 
 import com.example.Crossfire.User;
 import com.example.Crossfire.repository.UserRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model; // Add this
@@ -17,20 +18,30 @@ public class AccountController {
     private UserRepository userRepo;
 
     @GetMapping("/deposit")
-    public String showDepositPage(@RequestParam String username, Model model) {
-        // Find user or throw error - don't silently fail
-        User user = userRepo.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+    public String showDepositPage(HttpSession session, Model model) {
+        // Use session instead of @RequestParam for better security/stability
+        User user = (User) session.getAttribute("loggedInUser");
 
-        model.addAttribute("user", user);
+        if (user == null) {
+            return "redirect:/login";
+        }
+
+        // Refresh user data from DB to get latest balance
+        User refreshedUser = userRepo.findById(user.getId()).orElseThrow();
+        model.addAttribute("user", refreshedUser);
         return "deposit";
     }
+
     @PostMapping("/add-funds")
-    public String addFunds(@RequestParam String username, @RequestParam BigDecimal amount) {
-        userRepo.findByUsername(username).ifPresent(user -> {
-            user.addWinnings(amount);
-            userRepo.save(user);
-        });
-        return "redirect:/?username=" + username;
+    public String addFunds(@RequestParam BigDecimal amount, HttpSession session) {
+        User user = (User) session.getAttribute("loggedInUser");
+        if (user != null) {
+            User dbUser = userRepo.findById(user.getId()).orElseThrow();
+            dbUser.addWinnings(amount);
+            userRepo.save(dbUser);
+            // Update session object too
+            session.setAttribute("loggedInUser", dbUser);
+        }
+        return "redirect:/";
     }
 }
