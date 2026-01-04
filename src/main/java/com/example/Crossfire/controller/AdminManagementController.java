@@ -136,28 +136,6 @@ public class AdminManagementController {
         return "redirect:/admin/manage";
     }
 
-    // --- FINALIZATION & PAYOUTS ---
-    @Transactional
-    @PostMapping("/contest/{id}/finalize")
-    public String finalizeAndPay(@PathVariable Long id) {
-        FantasyContest contest = contestRepo.findById(id).orElseThrow();
-        List<LiveScore> results = liveScoreRepo.findByRodeoEvent(contest.getRodeoEvent());
-        List<UserEntry> entries = contest.getUserEntries();
 
-        for (UserEntry entry : entries) {
-            entry.setLiveScore(entry.calculateTotalScore(results));
-        }
 
-        entries.sort((a, b) -> Double.compare(b.getLiveScore(), a.getLiveScore()));
-        List<BigDecimal> prizeList = contest.calculateScalingPrizes();
-
-        for (int i = 0; i < prizeList.size(); i++) {
-            if (i < entries.size()) {
-                User winner = entries.get(i).getUser();
-                winner.addWinnings(prizeList.get(i));
-                userRepo.save(winner);
-            }
-        }
-        return "redirect:/admin/manage?msg=payout_complete";
     }
-}

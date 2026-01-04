@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Review Payout | Crossfire Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #0f172a; --card-bg: #1e293b; --accent-red: #b11111; --accent-green: #0bea00; --text-light: #f8fafc; --border: #334155; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-light); padding: 40px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .summary-card { background: var(--card-bg); padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 30px; }
+        .payout-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .payout-table th, .payout-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        .rank { font-weight: bold; color: var(--accent-green); width: 60px; }
+        .prize { font-weight: bold; color: white; }
+        .btn-confirm { background: var(--accent-green); color: black; border: none; padding: 15px 30px; font-family: 'Oswald'; text-transform: uppercase; border-radius: 8px; cursor: pointer; font-size: 18px; width: 100%; margin-top: 20px; }
+        .btn-confirm:hover { filter: brightness(1.2); }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/admin/payouts" style="color: #94a3b8; text-decoration: none;">← Back to List</a>
+
+    <div class="summary-card">
+        <h1 th:text="${contest.contestName}" style="font-family: 'Oswald'; margin-top: 0;">Contest Name</h1>
+        <p>Type: <strong th:text="${contest.contestType}">DYNAMIC</strong></p>
+        <p>Net Pool for Distribution: <strong th:text="'$' + ${contest.getDisplayPrizePool()}">$0.00</strong></p>
+    </div>
+
+    <h2 style="font-family: 'Oswald'; text-transform: uppercase;">Winner Rankings</h2>
+    <table class="payout-table">
+        <thead>
+        <tr>
+            <th>Rank</th>
+            <th>User</th>
+            <th>Score</th>
+            <th>Prize</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="entry, iter : ${entries}" th:if="${iter.index < prizes.size()}">
+            <td class="rank" th:text="'#' + ${iter.index + 1}">#1</td>
+            <td th:text="${entry.username}">Username</td>
+            <td th:text="${#numbers.formatDecimal(entry.liveScore, 1, 2)}">0.00</td>
+            <td class="prize" th:text="'$' + ${prizes.get(iter.index)}">$0.00</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <form th:action="@{/admin/payouts/process/{id}(id=${contest.id})}" method="post"
+          onsubmit="return confirm('WARNING: This will transfer actual balances to users. This action cannot be undone. Proceed?')">
+        <button type="submit" class="btn-confirm">Distribute Winnings Now</button>
+    </form>
+</div>
+</body>
+</html>

@@ -164,6 +164,7 @@ public class FantasyContest {
 
     private ContestType contestType = ContestType.DYNAMIC; // Default to dynamic
 
+    private boolean isPaid = false; // New field to track payout status
     /**
      * The "Smart" prize pool display logic.
      */

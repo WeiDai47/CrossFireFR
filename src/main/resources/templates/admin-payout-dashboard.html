@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Payout Dashboard | Crossfire Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #0f172a; --card-bg: #1e293b; --accent-red: #b11111; --accent-green: #0bea00; --text-light: #f8fafc; --border: #334155; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-light); padding: 40px; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #0f172a; font-family: 'Oswald'; text-transform: uppercase; color: var(--accent-green); }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .badge-dynamic { background: #3b82f6; color: white; }
+        .badge-double { background: #f59e0b; color: white; }
+        .badge-guaranteed { background: #10b981; color: white; }
+        .btn-preview { color: var(--accent-green); text-decoration: none; font-weight: bold; }
+        h2 { font-family: 'Oswald'; text-transform: uppercase; border-left: 4px solid var(--accent-red); padding-left: 15px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/admin/dashboard" style="color: #94a3b8; text-decoration: none;">← Back to Dashboard</a>
+    <h2>Pending Payouts</h2>
+    <p style="color: #94a3b8;">Select a contest to review rankings and process prize distribution.</p>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Contest Name</th>
+            <th>Type</th>
+            <th>Entries</th>
+            <th>Est. Prize Pool</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="contest : ${contests}">
+            <td th:text="${contest.contestName}">Name</td>
+            <td>
+                <span th:class="'badge badge-' + ${contest.contestType.name().toLowerCase()}"
+                      th:text="${contest.contestType}">Type</span>
+            </td>
+            <td th:text="${contest.userEntries.size()}">0</td>
+            <td th:text="'$' + ${contest.getDisplayPrizePool()}">$0.00</td>
+            <td>
+                <a th:href="@{/admin/payouts/preview/{id}(id=${contest.id})}" class="btn-preview">Review Payout</a>
+            </td>
+        </tr>
+        <tr th:if="${contests.isEmpty()}">
+            <td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8;">No pending payouts found. All contests are settled!</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
