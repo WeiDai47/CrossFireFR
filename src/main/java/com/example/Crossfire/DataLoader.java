@@ -52,6 +52,7 @@ public class DataLoader implements CommandLineRunner {
         if (contestantRepo.count() == 0) {
             seedAllContestants();
         }
+        seedAdminUser();
 
         if (eventRepo.count() == 0) {
             List<Contestant> allPool = contestantRepo.findAll();
@@ -80,6 +81,19 @@ public class DataLoader implements CommandLineRunner {
             seedCompetitiveLeaderboard(nfr, contest);
 
             System.out.println("Demo Data Successfully Loaded: 10 Users added to " + contest.getContestName());
+        }
+    }
+    private void seedAdminUser() {
+        if (userRepo.findByUsername("admin").isEmpty()) {
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setPassword("givemeajob");
+            admin.setDisplayName("System Admin");
+            admin.setEmail("admin@crossfire.com");
+            admin.setRole("ADMIN");
+            admin.setBalance(new BigDecimal("0.00"));
+            userRepo.save(admin);
+            System.out.println("Admin User Created: admin / admin123");
         }
     }
 

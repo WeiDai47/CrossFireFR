@@ -6,6 +6,7 @@ import com.example.Crossfire.UserEntry;
 import com.example.Crossfire.repository.FantasyContestRepository;
 import com.example.Crossfire.repository.UserEntryRepository;
 import com.example.Crossfire.repository.UserRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -32,20 +33,22 @@ public class LobbyController {
      * It fetches all available contests and identifies the logged-in user.
      */
     @GetMapping("/")
-    public String showLobby(@RequestParam(required = false) String username, Model model) {
-        // 1. Fetch all contests from the database for the grid display
+    public String showLobby(@RequestParam(required = false) String username, Model model, HttpSession session) {
+        // 1. Fetch all contests
         List<FantasyContest> contests = contestRepo.findAll();
         model.addAttribute("contests", contests);
 
-        // 2. Check if a username was provided in the URL (e.g., /?username=RodeoKing)
-        if (username != null && !username.isEmpty()) {
-            userRepo.findByUsername(username).ifPresent(user -> {
+        // 2. Determine who the user is (Priority: Session, then RequestParam)
+        User currentUser = (User) session.getAttribute("loggedInUser");
+        String effectiveUsername = (currentUser != null) ? currentUser.getUsername() : username;
+
+        // 3. If we have a username (from either source), load the data
+        if (effectiveUsername != null && !effectiveUsername.isEmpty()) {
+            userRepo.findByUsername(effectiveUsername).ifPresent(user -> {
                 model.addAttribute("user", user);
 
-                // Fetch the user's entries to see which contests they joined
-                List<UserEntry> userEntries = userEntryRepo.findByUsername(username);
-
-                // Create a list of Contest IDs the user is already in
+                // Fetch entries using the effective username
+                List<UserEntry> userEntries = userEntryRepo.findByUsername(effectiveUsername);
                 List<Long> enteredContestIds = userEntries.stream()
                         .map(entry -> entry.getFantasyContest().getId())
                         .collect(Collectors.toList());

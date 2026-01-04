@@ -24,6 +24,7 @@ public class User {
     private String address;
     private String password;
     private String displayName;
+    private String role = "USER";
 
 
     // --- FUNDS SECTION ---
@@ -42,6 +43,9 @@ public class User {
             this.balance = this.balance.add(amount);
         }
     }
+    // Add getters and setters for role
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
 }
 

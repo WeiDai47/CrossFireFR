@@ -158,7 +158,8 @@
         </div>
     </div>
 
-    <div style="text-align: center; margin-top: 50px; padding: 30px; border: 1px dashed var(--border); border-radius: 12px;">
+    <div th:if="${user != null and user.role == 'ADMIN'}"
+         style="text-align: center; margin-top: 50px; padding: 30px; border: 1px dashed var(--border); border-radius: 12px;">
         <h3 style="font-family: 'Oswald'; color: var(--accent-red); margin-top: 0;">Staff Administration</h3>
         <p style="color: #94a3b8; margin-bottom: 20px;">Access live scoring, athlete roster management, and event settings.</p>
         <a href="/admin/dashboard" style="background: var(--accent-red); color: white; padding: 12px 30px; text-decoration: none; font-family: 'Oswald'; border-radius: 6px; text-transform: uppercase;">Open Admin Dashboard</a>
